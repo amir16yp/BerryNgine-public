@@ -1,7 +1,6 @@
 package engine;
 
-public final class SpriteSheetFont
-{
+public final class SpriteSheetFont {
     private final String characters;
     private final TextureAtlas atlas;
     private final int glyphW;
@@ -14,20 +13,29 @@ public final class SpriteSheetFont
         this.glyphH = atlas.getTextureHeight();
     }
 
-    public int getGlyphWidth()  { return glyphW; }
-    public int getGlyphHeight() { return glyphH; }
-    public String getCharacters() { return characters; }
-    public TextureAtlas getAtlas() { return atlas; }
+    public int getGlyphWidth() {
+        return glyphW;
+    }
 
-    public PixelGraphics getStringImage(String string, int color)
-    {
+    public int getGlyphHeight() {
+        return glyphH;
+    }
+
+    public String getCharacters() {
+        return characters;
+    }
+
+    public TextureAtlas getAtlas() {
+        return atlas;
+    }
+
+    public PixelGraphics getStringImage(String string, int color) {
         PixelGraphics image = new PixelGraphics(Math.max(1, string.length() * glyphW), glyphH);
         drawString(image, string, 0, 0, color);
         return image;
     }
 
-    public void drawString(PixelGraphics g, String string, int x, int y, int color)
-    {
+    public void drawString(PixelGraphics g, String string, int x, int y, int color) {
         int cursorX = x;
         for (int i = 0; i < string.length(); i++) {
             int idx = characters.indexOf(string.charAt(i));

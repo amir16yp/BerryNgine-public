@@ -11,7 +11,7 @@ public final class Cursor {
     private boolean trackMouse = true;
 
     public Cursor(PixelGraphics sprite) {
-            this(sprite, 0, 0);
+        this(sprite, 0, 0);
     }
 
     public Cursor(PixelGraphics sprite, int hotX, int hotY) {

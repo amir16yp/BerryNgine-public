@@ -6,7 +6,8 @@ public final class Random {
 
     private static final State DEFAULT = new State();
 
-    private Random() {}
+    private Random() {
+    }
 
     public static final class State {
         private final java.util.Random rng = new java.util.Random();
@@ -43,22 +44,30 @@ public final class Random {
         // ANGLES & ROTATION
         // =========================
 
-        /** Returns a random angle in radians between 0 and 2 PI. */
+        /**
+         * Returns a random angle in radians between 0 and 2 PI.
+         */
         public float nextAngle() {
             return nextFloat(0.0f, Mathf.TWO_PI);
         }
 
-        /** Returns a random angle in radians between min and max. */
+        /**
+         * Returns a random angle in radians between min and max.
+         */
         public float nextAngle(float min, float max) {
             return nextFloat(min, max);
         }
 
-        /** Returns a random angle in degrees between 0 and 360. */
+        /**
+         * Returns a random angle in degrees between 0 and 360.
+         */
         public float nextAngleDeg() {
             return nextFloat(0.0f, 360.0f);
         }
 
-        /** Returns a random angle in degrees between min and max. */
+        /**
+         * Returns a random angle in degrees between min and max.
+         */
         public float nextAngleDeg(float min, float max) {
             return nextFloat(min, max);
         }
@@ -229,6 +238,7 @@ public final class Random {
     public static int sign() {
         return DEFAULT.sign();
     }
+
     public static float nextAngle() {
         return DEFAULT.nextAngle();
     }
@@ -244,6 +254,7 @@ public final class Random {
     public static float nextAngleDeg(float min, float max) {
         return DEFAULT.nextAngleDeg(min, max);
     }
+
     @SafeVarargs
     public static <T> T pick(T... array) {
         return DEFAULT.pick(array);

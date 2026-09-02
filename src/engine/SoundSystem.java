@@ -1,6 +1,9 @@
 package engine;
 
-import javax.sound.sampled.*;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -260,7 +263,10 @@ public class SoundSystem implements AutoCloseable {
                 int remaining = samples;
                 boolean finished = false;
 
-                if (v.paused) { i++; continue; }
+                if (v.paused) {
+                    i++;
+                    continue;
+                }
 
                 while (remaining > 0) {
                     int framesUntilEnd = clip.frames - v.position;

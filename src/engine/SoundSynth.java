@@ -40,7 +40,9 @@ public final class SoundSynth {
 
     // ---------------- PRESETS ----------------
 
-    /** Descending square zap, good for shots. */
+    /**
+     * Descending square zap, good for shots.
+     */
     public static SoundSynth laser() {
         return create()
                 .waveform(Waveform.SQUARE)
@@ -49,7 +51,9 @@ public final class SoundSynth {
                 .release(0.05f);
     }
 
-    /** Rising triangle chirp, good for pickups. */
+    /**
+     * Rising triangle chirp, good for pickups.
+     */
     public static SoundSynth coin() {
         return create()
                 .waveform(Waveform.TRIANGLE)
@@ -59,7 +63,9 @@ public final class SoundSynth {
                 .release(0.15f);
     }
 
-    /** Low rumbling noise burst. */
+    /**
+     * Low rumbling noise burst.
+     */
     public static SoundSynth explosion() {
         return create()
                 .waveform(Waveform.NOISE)
@@ -69,7 +75,9 @@ public final class SoundSynth {
                 .gain(0.8f);
     }
 
-    /** Quick upward square hop. */
+    /**
+     * Quick upward square hop.
+     */
     public static SoundSynth jump() {
         return create()
                 .waveform(Waveform.SQUARE)
@@ -79,7 +87,9 @@ public final class SoundSynth {
                 .duty(0.3f);
     }
 
-    /** Short harsh noise hit, good for damage. */
+    /**
+     * Short harsh noise hit, good for damage.
+     */
     public static SoundSynth hit() {
         return create()
                 .waveform(Waveform.NOISE)
@@ -88,7 +98,9 @@ public final class SoundSynth {
                 .release(0.1f);
     }
 
-    /** Rising vibrato sweep, good for power-ups. */
+    /**
+     * Rising vibrato sweep, good for power-ups.
+     */
     public static SoundSynth powerup() {
         return create()
                 .waveform(Waveform.SQUARE)
@@ -98,7 +110,9 @@ public final class SoundSynth {
                 .release(0.15f);
     }
 
-    /** Tiny UI click/blip. */
+    /**
+     * Tiny UI click/blip.
+     */
     public static SoundSynth blip() {
         return create()
                 .waveform(Waveform.SINE)
@@ -117,17 +131,23 @@ public final class SoundSynth {
         return this;
     }
 
-    /** Sets frequency from a MIDI note number (69 = A4 = 440Hz). */
+    /**
+     * Sets frequency from a MIDI note number (69 = A4 = 440Hz).
+     */
     public SoundSynth midiNote(int note) {
         return frequency(midiToHz(note));
     }
 
-    /** Sweeps between two MIDI note numbers. */
+    /**
+     * Sweeps between two MIDI note numbers.
+     */
     public SoundSynth sweepNotes(int startNote, int endNote) {
         return sweep(midiToHz(startNote), midiToHz(endNote));
     }
 
-    /** Sweeps from the current start frequency by the given number of semitones. */
+    /**
+     * Sweeps from the current start frequency by the given number of semitones.
+     */
     public SoundSynth slideSemitones(float semitones) {
         this.endFrequency = startFrequency * (float) Math.pow(2.0, semitones / 12.0);
         return this;
@@ -168,12 +188,16 @@ public final class SoundSynth {
         return this;
     }
 
-    /** Convenience: sets the full ADSR envelope in one call. */
+    /**
+     * Convenience: sets the full ADSR envelope in one call.
+     */
     public SoundSynth envelope(float attack, float decay, float sustain, float release) {
         return attack(attack).decay(decay).sustain(sustain).release(release);
     }
 
-    /** Convenience: no attack/decay, plays at full level for the given time then releases quickly. */
+    /**
+     * Convenience: no attack/decay, plays at full level for the given time then releases quickly.
+     */
     public SoundSynth duration(float seconds) {
         this.attack = 0.0f;
         this.decay = 0.0f;
@@ -203,26 +227,34 @@ public final class SoundSynth {
         return this;
     }
 
-    /** Amplitude modulation: depth 0..1, rate in Hz. */
+    /**
+     * Amplitude modulation: depth 0..1, rate in Hz.
+     */
     public SoundSynth tremolo(float depth, float rateHz) {
         this.tremoloDepth = Mathf.clamp01(depth);
         this.tremoloRate = Math.max(0.0f, rateHz);
         return this;
     }
 
-    /** One-pole lowpass filter. 0 disables. */
+    /**
+     * One-pole lowpass filter. 0 disables.
+     */
     public SoundSynth lowpass(float cutoffHz) {
         this.lowpassCutoff = Math.max(0.0f, cutoffHz);
         return this;
     }
 
-    /** One-pole highpass filter. 0 disables. */
+    /**
+     * One-pole highpass filter. 0 disables.
+     */
     public SoundSynth highpass(float cutoffHz) {
         this.highpassCutoff = Math.max(0.0f, cutoffHz);
         return this;
     }
 
-    /** Soft-clip distortion: 0 = clean, 1 = heavy. */
+    /**
+     * Soft-clip distortion: 0 = clean, 1 = heavy.
+     */
     public SoundSynth distortion(float amount) {
         this.distortion = Mathf.clamp01(amount);
         return this;

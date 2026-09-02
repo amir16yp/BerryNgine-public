@@ -8,7 +8,7 @@ public final class GameInformation {
     private static String name = "BerryNgineDemo";
     private static String author = "Unknown Author";
     private static String license = "All Rights Reserved";
-    private static String gameDataFolder;
+    private static File gameDataFolder;
     private static File gameInstallFolder;
     private static String credits = "No credits provided.";
 
@@ -36,7 +36,7 @@ public final class GameInformation {
 
         gameDataFolder = (dataFolder == null || dataFolder.trim().isEmpty())
                 ? buildDefaultGameDataFolder(author, name)
-                : dataFolder;
+                : new File(dataFolder);
 
         printInformation();
     }
@@ -56,7 +56,7 @@ public final class GameInformation {
         }
     }
 
-    private static String buildDefaultGameDataFolder(String author, String gameName) {
+    private static File buildDefaultGameDataFolder(String author, String gameName) {
         String os = System.getProperty("os.name").toLowerCase();
         String home = System.getProperty("user.home");
 
@@ -66,7 +66,7 @@ public final class GameInformation {
                     ? appData
                     : home + "\\AppData\\Roaming";
 
-            return base + "\\" + author + "\\" + gameName;
+            return new File(base + "\\" + author + "\\" + gameName);
         }
 
         String xdg = System.getenv("XDG_DATA_HOME");
@@ -74,7 +74,7 @@ public final class GameInformation {
                 ? xdg
                 : home + "/.local/share";
 
-        return base + "/" + author + "/" + gameName;
+        return new File(base + "/" + author + "/" + gameName);
     }
 
     public static void printInformation() {
@@ -89,12 +89,30 @@ public final class GameInformation {
     }
 
     // getters
-    public static String getName() { return name; }
-    public static String getAuthor() { return author; }
-    public static String getLicense() { return license; }
-    public static String getGameDataFolder() { return gameDataFolder; }
-    public static File getGameInstallFolder() { return gameInstallFolder; }
-    public static String getCredits() { return credits; }
+    public static String getName() {
+        return name;
+    }
 
-    private GameInformation() {} // prevent instantiation
+    public static String getAuthor() {
+        return author;
+    }
+
+    public static String getLicense() {
+        return license;
+    }
+
+    public static File getGameDataFolder() {
+        return gameDataFolder;
+    }
+
+    public static File getGameInstallFolder() {
+        return gameInstallFolder;
+    }
+
+    public static String getCredits() {
+        return credits;
+    }
+
+    private GameInformation() {
+    } // prevent instantiation
 }

@@ -1,7 +1,5 @@
 package engine;
 
-import java.util.logging.Logger;
-
 /**
  * Mathf - Fast math utility class with precached trigonometric values
  * Improves performance by storing precomputed values of sin, cos, and tan
@@ -11,10 +9,10 @@ public final class Mathf {
 
     // Size of the lookup tables (higher values give more precision)
     private static final int TABLE_SIZE = 4096;
-    public static float PI =(float) Math.PI;
+    public static float PI = (float) Math.PI;
     public static float TWO_PI = PI * 2.0f;
-    private static float PI_180 = 0.017453292519943295f;
-    private static float PI_180_INV = 57.29577951308232f;
+    private static final float PI_180 = 0.017453292519943295f;
+    private static final float PI_180_INV = 57.29577951308232f;
     // Maximum angle in radians (2π)
     private static final float MAX_ANGLE = PI * 2.0f;
 
@@ -30,12 +28,13 @@ public final class Mathf {
             float angle = i * MAX_ANGLE / TABLE_SIZE;
             SIN_TABLE[i] = (float) Math.sin(angle);
             COS_TABLE[i] = (float) Math.cos(angle);
-            TAN_TABLE[i] = (float)Math.tan(angle);
+            TAN_TABLE[i] = (float) Math.tan(angle);
         }
         System.out.println("Mathf: Trigonometric tables initialized with " + TABLE_SIZE + " entries");
     }
 
-    private Mathf(){}
+    private Mathf() {
+    }
 
     // Conversion factor from radians to table index
     private static final float TABLE_FACTOR = TABLE_SIZE / MAX_ANGLE;
@@ -57,6 +56,7 @@ public final class Mathf {
 
     /**
      * Fast sine calculation using table lookup
+     *
      * @param angle Angle in radians
      * @return Approximate sine value
      */
@@ -66,13 +66,14 @@ public final class Mathf {
         if (angle < 0) angle += MAX_ANGLE;
 
         // Convert to table index
-        int index = (int)(angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
+        int index = (int) (angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
         return SIN_TABLE[index];
     }
 
 
     /**
      * Fast cosine calculation using table lookup
+     *
      * @param angle Angle in radians
      * @return Approximate cosine value
      */
@@ -82,13 +83,14 @@ public final class Mathf {
         if (angle < 0) angle += MAX_ANGLE;
 
         // Convert to table index
-        int index = (int)(angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
+        int index = (int) (angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
         return COS_TABLE[index];
     }
 
 
     /**
      * Fast tangent calculation using table lookup
+     *
      * @param angle Angle in radians
      * @return Approximate tangent value
      */
@@ -98,12 +100,13 @@ public final class Mathf {
         if (angle < 0) angle += MAX_ANGLE;
 
         // Convert to table index
-        int index = (int)(angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
+        int index = (int) (angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
         return TAN_TABLE[index];
     }
 
     /**
      * Fast inverse tangent approximation
+     *
      * @param y Y coordinate
      * @param x X coordinate
      * @return Approximate arctangent in radians
@@ -128,28 +131,31 @@ public final class Mathf {
 
     /**
      * Converts degrees to radians
+     *
      * @param degrees Angle in degrees
      * @return Angle in radians
      */
     public static float toRadians(float degrees) {
         // Using multiplication is faster than division
         // PI/180 = 0.017453292519943295
-        return degrees * 0.017453292519943295f;
+        return degrees * PI_180;
     }
 
     /**
      * Converts radians to degrees
+     *
      * @param radians Angle in radians
      * @return Angle in degrees
      */
     public static float toDegrees(float radians) {
         // Using multiplication is faster than division
         // 180/PI = 57.29577951308232
-        return radians * 57.29577951308232f;
+        return radians * PI_180_INV;
     }
 
     /**
      * Fast approximation of square root for distance calculations
+     *
      * @param x Value to calculate square root of
      * @return Approximated square root
      */

@@ -13,12 +13,12 @@ public final class GameLoop implements Runnable {
 
     // Fixed-timestep
     private float fixedStep = 1f / 60f;
-    private int   fixedHz   = 60;
+    private int fixedHz = 60;
     private float accumulator = 0f;
 
     // Frame cap (0 = uncapped)
-    private int  targetFps      = 0;
-    private long targetFrameNs  = 0L;
+    private int targetFps = 0;
+    private long targetFrameNs = 0L;
 
     // Max dt clamp — prevents spiral of death after debugger pause
     private float maxDeltaTime = 1f / 15f;
@@ -91,7 +91,10 @@ public final class GameLoop implements Runnable {
                 long elapsed = System.nanoTime() - now;
                 long sleepNs = targetFrameNs - elapsed;
                 if (sleepNs > 1_000_000L) {
-                    try { Thread.sleep(sleepNs / 1_000_000L); } catch (InterruptedException ignored) {}
+                    try {
+                        Thread.sleep(sleepNs / 1_000_000L);
+                    } catch (InterruptedException ignored) {
+                    }
                 }
             }
         }
@@ -120,7 +123,7 @@ public final class GameLoop implements Runnable {
     }
 
     public void setTargetFps(int fps) {
-        this.targetFps     = fps;
+        this.targetFps = fps;
         this.targetFrameNs = fps > 0 ? 1_000_000_000L / fps : 0L;
     }
 
@@ -129,7 +132,7 @@ public final class GameLoop implements Runnable {
     }
 
     public void setFixedHz(int hz) {
-        this.fixedHz   = hz;
+        this.fixedHz = hz;
         this.fixedStep = hz > 0 ? 1f / hz : 1f / 60f;
     }
 

@@ -28,18 +28,20 @@ public class GameWindow extends Canvas {
         private int targetFps = 0;
         private int fixedHz = 60;
         private boolean defaultMouseCapture = false;
+
         private Builder(String title, IVec2 internalResolution) {
             this.title = title;
             this.internalResolution = internalResolution;
         }
 
-        public Builder setCaptureMouseByDefault(boolean captureMouseByDefault)
-        {
+        public Builder setCaptureMouseByDefault(boolean captureMouseByDefault) {
             this.defaultMouseCapture = captureMouseByDefault;
             return this;
         }
 
-        /** Initial window size = internal resolution * scale. */
+        /**
+         * Initial window size = internal resolution * scale.
+         */
         public Builder scale(int windowScale) {
             this.windowScale = Math.max(1, windowScale);
             return this;
@@ -55,7 +57,9 @@ public class GameWindow extends Canvas {
             return this;
         }
 
-        /** 0 = uncapped. */
+        /**
+         * 0 = uncapped.
+         */
         public Builder targetFps(int fps) {
             this.targetFps = fps;
             return this;
@@ -75,7 +79,9 @@ public class GameWindow extends Canvas {
             return window;
         }
 
-        /** Builds the window, sets the initial scene and starts the game loop. */
+        /**
+         * Builds the window, sets the initial scene and starts the game loop.
+         */
         public GameWindow run(Scene initialScene) {
             GameWindow window = build();
             window.run(initialScene);
@@ -94,6 +100,7 @@ public class GameWindow extends Canvas {
     private boolean borderlessFullscreen = false;
     private Rectangle windowedBounds = null;
     private static final java.awt.Cursor BLANK_CURSOR;
+
     static {
         BufferedImage blank = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         BLANK_CURSOR = Toolkit.getDefaultToolkit().createCustomCursor(blank, new Point(0, 0), "blank");
@@ -107,18 +114,15 @@ public class GameWindow extends Canvas {
     private final BufferedImage backBuffer;
     public boolean captureMouseByDefault = false;
 
-    public GameWindow(String title, int width, int height)
-    {
+    public GameWindow(String title, int width, int height) {
         this(title, new IVec2(width, height));
     }
 
-    public GameWindow(String title, IVec2 internalResolution)
-    {
+    public GameWindow(String title, IVec2 internalResolution) {
         this(title, internalResolution, 1, true);
     }
 
-    private GameWindow(String title, IVec2 internalResolution, int windowScale, boolean resizable)
-    {
+    private GameWindow(String title, IVec2 internalResolution, int windowScale, boolean resizable) {
         this.internalResolution = internalResolution;
         Dimension windowDimension = new Dimension(internalResolution.x * windowScale, internalResolution.y * windowScale);
         setPreferredSize(windowDimension);
@@ -234,24 +238,32 @@ public class GameWindow extends Canvas {
 
     // ---------------- LIFECYCLE ----------------
 
-    /** Shows the window (if hidden), sets the initial scene and starts the game loop. */
+    /**
+     * Shows the window (if hidden), sets the initial scene and starts the game loop.
+     */
     public void run(Scene initialScene) {
         setScene(initialScene);
         start();
     }
 
-    /** Shows the window (if hidden) and starts the game loop. */
+    /**
+     * Shows the window (if hidden) and starts the game loop.
+     */
     public void start() {
         showWindow();
         gameLoop.start();
     }
 
-    /** Stops the game loop. */
+    /**
+     * Stops the game loop.
+     */
     public void stop() {
         gameLoop.stop();
     }
 
-    /** Makes the window visible. Called automatically by start(). */
+    /**
+     * Makes the window visible. Called automatically by start().
+     */
     public void showWindow() {
         if (!frame.isVisible()) {
             frame.setVisible(true);

@@ -17,6 +17,7 @@ public class SceneManager {
             public void windowGainedFocus(WindowEvent e) {
                 notifyFocusChanged(true);
             }
+
             @Override
             public void windowLostFocus(WindowEvent e) {
                 notifyFocusChanged(false);
@@ -31,8 +32,7 @@ public class SceneManager {
     }
 
     public void setScene(Scene scene) {
-        if (this.currentScene != null)
-        {
+        if (this.currentScene != null) {
             this.currentScene.onSceneExit(window);
         }
         this.currentScene = scene;

@@ -2,7 +2,8 @@ package engine;
 
 public final class QOIDecoder {
 
-    private QOIDecoder() {}
+    private QOIDecoder() {
+    }
 
     public static PixelGraphics decode(byte[] data) {
         if (data == null || data.length < 14) {
@@ -17,7 +18,7 @@ public final class QOIDecoder {
         int width =
                 ((data[4] & 0xFF) << 24) |
                         ((data[5] & 0xFF) << 16) |
-                        ((data[6] & 0xFF) << 8)  |
+                        ((data[6] & 0xFF) << 8) |
                         (data[7] & 0xFF);
 
         int height =

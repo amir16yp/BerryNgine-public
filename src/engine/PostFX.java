@@ -2,7 +2,8 @@ package engine;
 
 public final class PostFX {
 
-    private PostFX() {}
+    private PostFX() {
+    }
 
     public static void grayscale(PixelGraphics g) {
         int[] pixels = g.pixels;
@@ -112,8 +113,8 @@ public final class PostFX {
             int b = Color.getBlue(c);
 
             if (Math.abs(r - fr) <= tolerance &&
-                Math.abs(gr - fg) <= tolerance &&
-                Math.abs(b - fb) <= tolerance) {
+                    Math.abs(gr - fg) <= tolerance &&
+                    Math.abs(b - fb) <= tolerance) {
                 pixels[i] = Color.fromRGBA(Color.getRed(to), Color.getGreen(to), Color.getBlue(to), Color.getAlpha(c));
             }
         }

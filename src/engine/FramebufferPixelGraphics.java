@@ -34,7 +34,9 @@ public class FramebufferPixelGraphics extends PixelGraphics {
         this.cursor = cursor;
     }
 
-    /** Called once per frame by the game loop before the scene renders. */
+    /**
+     * Called once per frame by the game loop before the scene renders.
+     */
     public void update(float dt) {
         camera.update(dt);
         if (cursor != null) {
@@ -42,7 +44,9 @@ public class FramebufferPixelGraphics extends PixelGraphics {
         }
     }
 
-    /** Called once per frame by the game loop after the scene renders, so the cursor is always on top. */
+    /**
+     * Called once per frame by the game loop after the scene renders, so the cursor is always on top.
+     */
     public void renderCursor() {
         if (cursor != null) {
             cursor.render(this);
@@ -51,7 +55,9 @@ public class FramebufferPixelGraphics extends PixelGraphics {
 
     // ---------------- WORLD-SPACE DRAWING ----------------
 
-    /** True if a world-space rectangle intersects the camera view. */
+    /**
+     * True if a world-space rectangle intersects the camera view.
+     */
     public boolean isVisibleWorld(float worldX, float worldY, float w, float h) {
         return camera.isVisible(worldX, worldY, w, h);
     }

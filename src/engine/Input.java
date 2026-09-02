@@ -23,10 +23,10 @@ public final class Input {
     private static boolean hasRawDelta = false;
     private static int rawDeltaX, rawDeltaY;
 
-    private static boolean[] mouseButtons = new boolean[8];
-    private static boolean[] mouseButtonsDown = new boolean[8];
-    private static boolean[] mouseButtonsUp = new boolean[8];
-    private static boolean[] prevMouseButtons = new boolean[8];
+    private static final boolean[] mouseButtons = new boolean[8];
+    private static final boolean[] mouseButtonsDown = new boolean[8];
+    private static final boolean[] mouseButtonsUp = new boolean[8];
+    private static final boolean[] prevMouseButtons = new boolean[8];
 
     // Typed text (keyTyped events accumulated between polls)
     private static final StringBuilder rawTyped = new StringBuilder();
@@ -119,11 +119,25 @@ public final class Input {
     // PUBLIC API (UNCHANGED)
     // =========================
 
-    public static int getMouseX() { return mouseX; }
-    public static int getMouseY() { return mouseY; }
-    public static int getMouseDeltaX() { return mouseDeltaX; }
-    public static int getMouseDeltaY() { return mouseDeltaY; }
-    public static int getMouseWheel() { return mouseWheelThisFrame; }
+    public static int getMouseX() {
+        return mouseX;
+    }
+
+    public static int getMouseY() {
+        return mouseY;
+    }
+
+    public static int getMouseDeltaX() {
+        return mouseDeltaX;
+    }
+
+    public static int getMouseDeltaY() {
+        return mouseDeltaY;
+    }
+
+    public static int getMouseWheel() {
+        return mouseWheelThisFrame;
+    }
 
     public static boolean isMouseButton(int button) {
         return button > 0 && button < mouseButtons.length && mouseButtons[button];
@@ -149,8 +163,13 @@ public final class Input {
         return keyCode >= 0 && keyCode < NUM_KEYS && keysUp[keyCode];
     }
 
-    public static String getTypedText() { return typedText; }
-    public static boolean hasTypedInput() { return !typedText.isEmpty(); }
+    public static String getTypedText() {
+        return typedText;
+    }
+
+    public static boolean hasTypedInput() {
+        return !typedText.isEmpty();
+    }
 
     static void setScreenSize(int w, int h) {
         screenWidth = w;
@@ -164,12 +183,12 @@ public final class Input {
 
     public static int getMouseScaledX() {
         if (windowWidth == 0) return mouseX;
-        return (int)((mouseX / (double)windowWidth) * screenWidth);
+        return (int) ((mouseX / (double) windowWidth) * screenWidth);
     }
 
     public static int getMouseScaledY() {
         if (windowHeight == 0) return mouseY;
-        return (int)((mouseY / (double)windowHeight) * screenHeight);
+        return (int) ((mouseY / (double) windowHeight) * screenHeight);
     }
 
     // =========================
@@ -178,14 +197,14 @@ public final class Input {
 
     public static float getAxisHorizontal() {
         float v = 0;
-        if (keys[java.awt.event.KeyEvent.VK_A] || keys[java.awt.event.KeyEvent.VK_LEFT])  v -= 1f;
+        if (keys[java.awt.event.KeyEvent.VK_A] || keys[java.awt.event.KeyEvent.VK_LEFT]) v -= 1f;
         if (keys[java.awt.event.KeyEvent.VK_D] || keys[java.awt.event.KeyEvent.VK_RIGHT]) v += 1f;
         return v;
     }
 
     public static float getAxisVertical() {
         float v = 0;
-        if (keys[java.awt.event.KeyEvent.VK_W] || keys[java.awt.event.KeyEvent.VK_UP])   v -= 1f;
+        if (keys[java.awt.event.KeyEvent.VK_W] || keys[java.awt.event.KeyEvent.VK_UP]) v -= 1f;
         if (keys[java.awt.event.KeyEvent.VK_S] || keys[java.awt.event.KeyEvent.VK_DOWN]) v += 1f;
         return v;
     }

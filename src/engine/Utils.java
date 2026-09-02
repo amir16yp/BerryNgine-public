@@ -81,8 +81,7 @@ public final class Utils {
         }
     }
 
-    public static PixelGraphics loadTextureFromResources(String resourcePath)
-    {
+    public static PixelGraphics loadTextureFromResources(String resourcePath) {
         if (hasExtension(resourcePath, "qoi") || hasExtension(resourcePath, "qoif")) {
             return loadTextureFromQOI(getFileFromResources(resourcePath));
         }
@@ -104,13 +103,11 @@ public final class Utils {
         return new TextureAtlas(texture, tileWidth, tileHeight);
     }
 
-    private static PixelGraphics loadTextureFromQOI(byte[] qoiFileData)
-    {
+    private static PixelGraphics loadTextureFromQOI(byte[] qoiFileData) {
         return QOIDecoder.decode(qoiFileData);
     }
 
-    public static PixelGraphics textureFromBufferedImage(BufferedImage image)
-    {
+    public static PixelGraphics textureFromBufferedImage(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -133,13 +130,11 @@ public final class Utils {
     }
 
 
-    public static BitmapFont loadFontFromGameInstall(String relativePath)
-    {
+    public static BitmapFont loadFontFromGameInstall(String relativePath) {
         return PSF1Parser.parse(getFileFromGameInstall(relativePath));
     }
 
-    public static BitmapFont loadFontFromResources(String resourcePath)
-    {
+    public static BitmapFont loadFontFromResources(String resourcePath) {
         return PSF1Parser.parse(getFileFromResources(resourcePath));
     }
 

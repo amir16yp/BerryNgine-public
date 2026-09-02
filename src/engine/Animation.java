@@ -9,7 +9,7 @@ public final class Animation {
     private final int[] frames;
     private final float frameDuration;
     private boolean registered = false;
-    private static List<Animation> registeredAnimations = new ArrayList<>();
+    private static final List<Animation> registeredAnimations = new ArrayList<>();
     private float elapsed;
     private int currentFrame;
     private boolean loop;
@@ -31,9 +31,10 @@ public final class Animation {
         this.finished = false;
     }
 
-    public Animation register()
-    {
-        if (registered) { return this; }
+    public Animation register() {
+        if (registered) {
+            return this;
+        }
         registered = true;
         registeredAnimations.add(this);
         return this;
@@ -72,10 +73,8 @@ public final class Animation {
         }
     }
 
-    public static void updateRegistered(float dt)
-    {
-        for (Animation animation : registeredAnimations)
-        {
+    public static void updateRegistered(float dt) {
+        for (Animation animation : registeredAnimations) {
             animation.update(dt);
         }
     }

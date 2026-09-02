@@ -24,15 +24,16 @@ public class PixelGraphics {
         this.pixels = pixels;
         this.width = width;
         this.height = height;
-        clipX2 = width; clipY2 = height;
+        clipX2 = width;
+        clipY2 = height;
     }
 
-    public PixelGraphics(int width, int height)
-    {
+    public PixelGraphics(int width, int height) {
         this.pixels = new int[width * height];
         this.width = width;
         this.height = height;
-        clipX2 = width; clipY2 = height;
+        clipX2 = width;
+        clipY2 = height;
     }
 
     public BufferedImage toBufferedImage() {
@@ -277,7 +278,7 @@ public class PixelGraphics {
         int idx = y * width + x;
         int dstColor = pixels[idx];
 
-        int srcA = (int)((srcColor >>> 24) * globalAlpha);
+        int srcA = (int) ((srcColor >>> 24) * globalAlpha);
         if (srcA <= 0) return;
 
         // Fast path: fully opaque after global alpha
@@ -499,8 +500,8 @@ public class PixelGraphics {
 
     public void drawImageTinted(int[] srcPixels, int srcW, int srcH, int x, int y, int tint) {
         int tR = (tint >> 16) & 0xFF;
-        int tG = (tint >>  8) & 0xFF;
-        int tB =  tint        & 0xFF;
+        int tG = (tint >> 8) & 0xFF;
+        int tB = tint & 0xFF;
         int tA = (tint >>> 24) & 0xFF;
 
         int xStart = Math.max(0, -x);
@@ -511,15 +512,15 @@ public class PixelGraphics {
 
         for (int row = yStart; row < yEnd; row++) {
             int srcOff = row * srcW;
-            int dstY   = row + y;
-            int dstX0  = xStart + x;
+            int dstY = row + y;
+            int dstX0 = xStart + x;
             for (int col = xStart; col < xEnd; col++) {
                 int c = srcPixels[srcOff + col];
                 int a = (c >>> 24) & 0xFF;
                 if (a == 0) continue;
                 int r = ((c >> 16) & 0xFF) * tR / 255;
-                int g = ((c >>  8) & 0xFF) * tG / 255;
-                int b = ( c        & 0xFF) * tB / 255;
+                int g = ((c >> 8) & 0xFF) * tG / 255;
+                int b = (c & 0xFF) * tB / 255;
                 int ra = a * tA / 255;
                 blendPixel(dstX0 + (col - xStart), dstY, (ra << 24) | (r << 16) | (g << 8) | b);
             }
@@ -540,10 +541,10 @@ public class PixelGraphics {
 
         for (int row = yStart; row < yEnd; row++) {
             int srcRow = flipV ? (srcH - 1 - row) : row;
-            int dstY   = row + y;
+            int dstY = row + y;
             for (int col = xStart; col < xEnd; col++) {
                 int srcCol = flipH ? (srcW - 1 - col) : col;
-                int color  = srcPixels[srcRow * srcW + srcCol];
+                int color = srcPixels[srcRow * srcW + srcCol];
                 if ((color >>> 24) > 0) blendPixel(col + x, dstY, color);
             }
         }
@@ -607,13 +608,15 @@ public class PixelGraphics {
     public void setClip(int x, int y, int w, int h) {
         clipX1 = Math.max(0, x);
         clipY1 = Math.max(0, y);
-        clipX2 = Math.min(width,  x + w);
+        clipX2 = Math.min(width, x + w);
         clipY2 = Math.min(height, y + h);
     }
 
     public void clearClip() {
-        clipX1 = 0; clipY1 = 0;
-        clipX2 = width; clipY2 = height;
+        clipX1 = 0;
+        clipY1 = 0;
+        clipX2 = width;
+        clipY2 = height;
     }
 
     public PixelGraphics getSubImage(int x, int y, int w, int h) {
@@ -682,6 +685,7 @@ public class PixelGraphics {
      * Creates a new PixelGraphics instance scaled up by an integer factor.
      * Perfect for retro-style software rendering.
      * * @param scaleFactor The multiplier (e.g., 2 for 2x scaling)
+     *
      * @return A new scaled PixelGraphics instance
      */
     public PixelGraphics scale(int scaleFactor) {
@@ -713,6 +717,7 @@ public class PixelGraphics {
         }
         return scaled;
     }
+
     public void scaleTo(PixelGraphics target, int scaleFactor) {
         if (scaleFactor <= 1) {
             System.arraycopy(this.pixels, 0, target.pixels, 0,
@@ -863,7 +868,10 @@ public class PixelGraphics {
 
     public void renderString(BitmapFont font, String text, int x, int y, int color, int backgroundColor, int scale) {
         if (font == null || text == null || scale <= 0) return;
-        if (scale == 1) { renderString(font, text, x, y, color, backgroundColor); return; }
+        if (scale == 1) {
+            renderString(font, text, x, y, color, backgroundColor);
+            return;
+        }
 
         int glyphW = font.getGlyphWidth();
         int glyphH = font.getGlyphHeight();
@@ -888,7 +896,10 @@ public class PixelGraphics {
 
     public void renderString(SpriteSheetFont font, String text, int x, int y, int color, int scale) {
         if (font == null || text == null || scale <= 0) return;
-        if (scale == 1) { renderString(font, text, x, y, color); return; }
+        if (scale == 1) {
+            renderString(font, text, x, y, color);
+            return;
+        }
 
         int glyphW = font.getGlyphWidth();
         int glyphH = font.getGlyphHeight();

@@ -2,7 +2,8 @@ package engine;
 
 public final class ShapeGenerator {
 
-    private ShapeGenerator() {}
+    private ShapeGenerator() {
+    }
 
     public static PixelGraphics circle(int radius, int color) {
         int size = radius * 2 + 1;
@@ -227,8 +228,8 @@ public final class ShapeGenerator {
 
     public static PixelGraphics diamond(int width, int height, int color) {
         PixelGraphics g = new PixelGraphics(width, height);
-        int[] x = { width / 2, width - 1, width / 2, 0 };
-        int[] y = { 0, height / 2, height - 1, height / 2 };
+        int[] x = {width / 2, width - 1, width / 2, 0};
+        int[] y = {0, height / 2, height - 1, height / 2};
         fillPolygon(g, x, y, 4, color);
         return g;
     }
@@ -308,16 +309,16 @@ public final class ShapeGenerator {
         int shaftX = width - headW;
         int shaftY = cy - half;
         g.fillRect(0, shaftY, shaftX, thickness, color);
-        int[] x = { shaftX, width - 1, shaftX };
-        int[] y = { 0, cy, height - 1 };
+        int[] x = {shaftX, width - 1, shaftX};
+        int[] y = {0, cy, height - 1};
         fillPolygon(g, x, y, 3, color);
         return g;
     }
 
     public static PixelGraphics chevron(int width, int height, int color, int thickness) {
         PixelGraphics g = new PixelGraphics(width, height);
-        int[] x = { 0, width / 2, width, width - thickness, width / 2, thickness };
-        int[] y = { 0, height - thickness, 0, 0, thickness, 0 };
+        int[] x = {0, width / 2, width, width - thickness, width / 2, thickness};
+        int[] y = {0, height - thickness, 0, 0, thickness, 0};
         fillPolygon(g, x, y, 6, color);
         return g;
     }
@@ -342,8 +343,8 @@ public final class ShapeGenerator {
 
     public static PixelGraphics bolt(int width, int height, int color) {
         PixelGraphics g = new PixelGraphics(width, height);
-        int[] x = { width / 3, width * 2 / 3, width / 2, width * 2 / 3, width / 3, width / 2 };
-        int[] y = { 0, 0, height / 2, height / 2, height, height / 2 };
+        int[] x = {width / 3, width * 2 / 3, width / 2, width * 2 / 3, width / 3, width / 2};
+        int[] y = {0, 0, height / 2, height / 2, height, height / 2};
         fillPolygon(g, x, y, 6, color);
         return g;
     }
@@ -592,9 +593,30 @@ public final class ShapeGenerator {
     }
 
     private static void fillTriangle(PixelGraphics g, int x1, int y1, int x2, int y2, int x3, int y3, int color) {
-        if (y1 > y2) { int tx = x1; x1 = x2; x2 = tx; int ty = y1; y1 = y2; y2 = ty; }
-        if (y1 > y3) { int tx = x1; x1 = x3; x3 = tx; int ty = y1; y1 = y3; y3 = ty; }
-        if (y2 > y3) { int tx = x2; x2 = x3; x3 = tx; int ty = y2; y2 = y3; y3 = ty; }
+        if (y1 > y2) {
+            int tx = x1;
+            x1 = x2;
+            x2 = tx;
+            int ty = y1;
+            y1 = y2;
+            y2 = ty;
+        }
+        if (y1 > y3) {
+            int tx = x1;
+            x1 = x3;
+            x3 = tx;
+            int ty = y1;
+            y1 = y3;
+            y3 = ty;
+        }
+        if (y2 > y3) {
+            int tx = x2;
+            x2 = x3;
+            x3 = tx;
+            int ty = y2;
+            y2 = y3;
+            y3 = ty;
+        }
 
         if (y1 == y3) return;
 

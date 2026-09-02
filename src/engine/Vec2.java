@@ -13,8 +13,7 @@ public final class Vec2 {
         this.y = y;
     }
 
-    public Vec2(int x, int y)
-    {
+    public Vec2(int x, int y) {
         this.x = (float) x;
         this.y = (float) y;
     }
@@ -210,7 +209,8 @@ public final class Vec2 {
 
     /**
      * Bounces/reflects this velocity vector against a surface normal.
-     * @param normal Normalized surface vector
+     *
+     * @param normal     Normalized surface vector
      * @param bounciness Coefficient of restitution (0.0 = no bounce, 1.0 = perfect bounce)
      */
     public Vec2 reflect(Vec2 normal, float bounciness) {
