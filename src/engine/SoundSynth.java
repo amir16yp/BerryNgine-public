@@ -15,30 +15,43 @@ public final class SoundSynth {
     private static final int SAMPLE_RATE = 44100;
 
     private Waveform waveform = Waveform.SINE;
+
     private float startFrequency = 440.0f;
-    private float endFrequency = -1.0f;
+    private float endFrequency = Float.NaN;
+
     private float attack = 0.0f;
     private float decay = 0.0f;
     private float sustain = 0.2f;
     private float sustainLevel = 1.0f;
     private float release = 0.05f;
+
     private float gain = 1.0f;
     private float duty = 0.5f;
+
     private float vibratoDepth = 0.0f;
     private float vibratoRate = 0.0f;
+
     private long noiseSeed = 0;
     private boolean hasNoiseSeed = false;
+
     private float tremoloDepth = 0.0f;
     private float tremoloRate = 0.0f;
+
     private float lowpassCutoff = 0.0f;
     private float highpassCutoff = 0.0f;
+
     private float distortion = 0.0f;
+
+    private SoundSynth() {
+    }
 
     public static SoundSynth create() {
         return new SoundSynth();
     }
 
-    // ---------------- PRESETS ----------------
+    // ============================================================
+    // PRESETS
+    // ============================================================
 
     /**
      * Descending square zap, good for shots.
@@ -121,18 +134,88 @@ public final class SoundSynth {
                 .release(0.03f);
     }
 
+    /**
+     * Short upward UI confirmation sound.
+     */
+    public static SoundSynth select() {
+        return create()
+                .waveform(Waveform.SINE)
+                .sweep(500.0f, 900.0f)
+                .attack(0.002f)
+                .sustain(0.025f)
+                .release(0.04f);
+    }
+
+    /**
+     * Low descending error sound.
+     */
+    public static SoundSynth error() {
+        return create()
+                .waveform(Waveform.SQUARE)
+                .sweep(350.0f, 100.0f)
+                .sustain(0.08f)
+                .release(0.1f)
+                .duty(0.5f);
+    }
+
+    /**
+     * Short rising charge sound.
+     */
+    public static SoundSynth charge() {
+        return create()
+                .waveform(Waveform.SAW)
+                .sweep(150.0f, 900.0f)
+                .sustain(0.25f)
+                .release(0.1f)
+                .lowpass(5000.0f);
+    }
+
+    /**
+     * Short descending death sound.
+     */
+    public static SoundSynth death() {
+        return create()
+                .waveform(Waveform.TRIANGLE)
+                .sweep(500.0f, 80.0f)
+                .sustain(0.25f)
+                .release(0.2f);
+    }
+
+    /**
+     * Short teleport-like sweep.
+     */
+    public static SoundSynth teleport() {
+        return create()
+                .waveform(Waveform.SINE)
+                .sweep(150.0f, 1600.0f)
+                .sustain(0.25f)
+                .release(0.2f)
+                .vibrato(0.08f, 12.0f);
+    }
+
+    // ============================================================
+    // BASIC OSCILLATOR SETTINGS
+    // ============================================================
+
     public SoundSynth waveform(Waveform waveform) {
+        if (waveform == null) {
+            throw new IllegalArgumentException("waveform cannot be null");
+        }
+
         this.waveform = waveform;
         return this;
     }
 
     public SoundSynth frequency(float hz) {
-        this.startFrequency = hz;
+        this.startFrequency = Math.max(0.0f, hz);
+        this.endFrequency = Float.NaN;
         return this;
     }
 
     /**
-     * Sets frequency from a MIDI note number (69 = A4 = 440Hz).
+     * Sets frequency from a MIDI note number.
+     *
+     * 69 = A4 = 440 Hz.
      */
     public SoundSynth midiNote(int note) {
         return frequency(midiToHz(note));
@@ -142,26 +225,63 @@ public final class SoundSynth {
      * Sweeps between two MIDI note numbers.
      */
     public SoundSynth sweepNotes(int startNote, int endNote) {
-        return sweep(midiToHz(startNote), midiToHz(endNote));
+        return sweep(
+                midiToHz(startNote),
+                midiToHz(endNote)
+        );
     }
 
     /**
-     * Sweeps from the current start frequency by the given number of semitones.
+     * Slides from the current starting frequency
+     * by the specified number of semitones.
      */
     public SoundSynth slideSemitones(float semitones) {
-        this.endFrequency = startFrequency * (float) Math.pow(2.0, semitones / 12.0);
+        if (!Float.isFinite(semitones)) {
+            throw new IllegalArgumentException(
+                    "semitones must be finite"
+            );
+        }
+
+        this.endFrequency = startFrequency *
+                (float) Math.pow(2.0, semitones / 12.0);
+
         return this;
     }
 
+    /**
+     * Converts a MIDI note number to frequency.
+     *
+     * MIDI 69 = A4 = 440 Hz.
+     */
     public static float midiToHz(int note) {
-        return (float) (440.0 * Math.pow(2.0, (note - 69) / 12.0));
+        return (float) (
+                440.0 *
+                        Math.pow(2.0, (note - 69) / 12.0)
+        );
     }
 
+    /**
+     * Creates a pitch sweep.
+     *
+     * The sweep is exponential in frequency, which produces
+     * a more natural musical pitch movement than a linear Hz sweep.
+     */
     public SoundSynth sweep(float startHz, float endHz) {
-        this.startFrequency = startHz;
-        this.endFrequency = endHz;
+        if (!Float.isFinite(startHz) || !Float.isFinite(endHz)) {
+            throw new IllegalArgumentException(
+                    "frequencies must be finite"
+            );
+        }
+
+        this.startFrequency = Math.max(0.0f, startHz);
+        this.endFrequency = Math.max(0.0f, endHz);
+
         return this;
     }
+
+    // ============================================================
+    // ENVELOPE
+    // ============================================================
 
     public SoundSynth attack(float seconds) {
         this.attack = Math.max(0.0f, seconds);
@@ -189,55 +309,114 @@ public final class SoundSynth {
     }
 
     /**
-     * Convenience: sets the full ADSR envelope in one call.
+     * Sets the complete ADSR envelope.
      */
-    public SoundSynth envelope(float attack, float decay, float sustain, float release) {
-        return attack(attack).decay(decay).sustain(sustain).release(release);
+    public SoundSynth envelope(
+            float attack,
+            float decay,
+            float sustain,
+            float release) {
+
+        return attack(attack)
+                .decay(decay)
+                .sustain(sustain)
+                .release(release);
     }
 
     /**
-     * Convenience: no attack/decay, plays at full level for the given time then releases quickly.
+     * Convenience method for a sound with no attack or decay.
      */
     public SoundSynth duration(float seconds) {
         this.attack = 0.0f;
         this.decay = 0.0f;
         this.sustain = Math.max(0.0f, seconds);
+
         return this;
     }
+
+    // ============================================================
+    // AMPLITUDE
+    // ============================================================
 
     public SoundSynth gain(float gain) {
         this.gain = Math.max(0.0f, gain);
         return this;
     }
 
+    // ============================================================
+    // OSCILLATOR MODULATION
+    // ============================================================
+
+    /**
+     * Sets square-wave duty cycle.
+     *
+     * 0.5 = normal square wave.
+     */
     public SoundSynth duty(float duty) {
         this.duty = Mathf.clamp01(duty);
         return this;
     }
 
+    /**
+     * Adds vibrato to the oscillator.
+     *
+     * depth:
+     *   0.0 = none
+     *   0.05 = ±5% frequency modulation
+     *
+     * rateHz:
+     *   Vibrato frequency.
+     */
     public SoundSynth vibrato(float depth, float rateHz) {
         this.vibratoDepth = Math.max(0.0f, depth);
         this.vibratoRate = Math.max(0.0f, rateHz);
-        return this;
-    }
 
-    public SoundSynth noiseSeed(long seed) {
-        this.noiseSeed = seed;
-        this.hasNoiseSeed = true;
         return this;
     }
 
     /**
-     * Amplitude modulation: depth 0..1, rate in Hz.
+     * Sets a deterministic noise seed.
+     */
+    public SoundSynth noiseSeed(long seed) {
+        this.noiseSeed = seed;
+        this.hasNoiseSeed = true;
+
+        return this;
+    }
+
+    /**
+     * Enables random noise generation.
+     */
+    public SoundSynth randomNoise() {
+        this.hasNoiseSeed = false;
+        return this;
+    }
+
+    /**
+     * Amplitude modulation.
+     *
+     * depth:
+     *   0 = none
+     *   1 = maximum modulation
+     *
+     * rateHz:
+     *   Modulation frequency.
      */
     public SoundSynth tremolo(float depth, float rateHz) {
         this.tremoloDepth = Mathf.clamp01(depth);
         this.tremoloRate = Math.max(0.0f, rateHz);
+
         return this;
     }
 
+    // ============================================================
+    // FILTERS
+    // ============================================================
+
     /**
-     * One-pole lowpass filter. 0 disables.
+     * One-pole low-pass filter.
+     *
+     * 0 disables the filter.
      */
     public SoundSynth lowpass(float cutoffHz) {
         this.lowpassCutoff = Math.max(0.0f, cutoffHz);
@@ -245,142 +424,520 @@ public final class SoundSynth {
     }
 
     /**
-     * One-pole highpass filter. 0 disables.
+     * One-pole high-pass filter.
+     *
+     * 0 disables the filter.
      */
     public SoundSynth highpass(float cutoffHz) {
         this.highpassCutoff = Math.max(0.0f, cutoffHz);
         return this;
     }
 
+    // ============================================================
+    // DISTORTION
+    // ============================================================
+
     /**
-     * Soft-clip distortion: 0 = clean, 1 = heavy.
+     * Soft-clipping distortion.
+     *
+     * 0 = clean
+     * 1 = heavy
      */
     public SoundSynth distortion(float amount) {
         this.distortion = Mathf.clamp01(amount);
         return this;
     }
 
+    // ============================================================
+    // BUILD
+    // ============================================================
+
+    /**
+     * Generates the synthesized PCM sound.
+     */
     public Sound build() {
-        float duration = attack + decay + sustain + release;
-        int totalFrames = Math.max(1, (int) (duration * SAMPLE_RATE));
 
-        float attackEnd = attack * SAMPLE_RATE;
-        float decayEnd = attackEnd + decay * SAMPLE_RATE;
-        float sustainEnd = decayEnd + sustain * SAMPLE_RATE;
+        float duration =
+                attack +
+                        decay +
+                        sustain +
+                        release;
 
+        int totalFrames = Math.max(
+                1,
+                (int) Math.ceil(duration * SAMPLE_RATE)
+        );
+
+        /*
+         * Envelope boundaries are expressed in samples.
+         */
+        float attackEnd =
+                attack * SAMPLE_RATE;
+
+        float decayEnd =
+                attackEnd +
+                        decay * SAMPLE_RATE;
+
+        float sustainEnd =
+                decayEnd +
+                        sustain * SAMPLE_RATE;
+
+        /*
+         * If there is no sweep, end frequency is the
+         * starting frequency.
+         */
         float freqStart = startFrequency;
-        float freqEnd = endFrequency >= 0.0f ? endFrequency : startFrequency;
 
-        Random random = hasNoiseSeed ? new Random(noiseSeed) : new Random();
-        short[] pcm = new short[totalFrames];
+        float freqEnd =
+                Float.isNaN(endFrequency)
+                        ? startFrequency
+                        : endFrequency;
+
+        /*
+         * Avoid invalid exponential interpolation.
+         *
+         * A frequency of zero cannot participate in
+         * logarithmic interpolation, so fall back to
+         * linear interpolation when either endpoint is zero.
+         */
+        boolean exponentialSweep =
+                freqStart > 0.0f &&
+                        freqEnd > 0.0f;
+
+        Random random =
+                hasNoiseSeed
+                        ? new Random(noiseSeed)
+                        : new Random();
+
+        short[] pcm =
+                new short[totalFrames];
 
         double phase = 0.0;
+
         float noiseValue = 0.0f;
         int noiseCounter = 0;
 
-        float lpAlpha = lowpassCutoff > 0.0f ? filterAlpha(lowpassCutoff) : 0.0f;
-        float hpAlpha = highpassCutoff > 0.0f ? filterAlpha(highpassCutoff) : 0.0f;
+        /*
+         * Filter coefficients.
+         */
+        float lpAlpha =
+                lowpassCutoff > 0.0f
+                        ? filterAlpha(lowpassCutoff)
+                        : 0.0f;
+
+        float hpAlpha =
+                highpassCutoff > 0.0f
+                        ? filterAlpha(highpassCutoff)
+                        : 0.0f;
+
         float lpState = 0.0f;
         float hpState = 0.0f;
         float hpPrevInput = 0.0f;
-        float drive = 1.0f + distortion * 15.0f;
+
+        /*
+         * Distortion drive.
+         */
+        float drive =
+                1.0f +
+                        distortion * 15.0f;
+
+        // ========================================================
+        // SAMPLE GENERATION
+        // ========================================================
 
         for (int i = 0; i < totalFrames; i++) {
-            float t = (float) i / totalFrames;
-            float freq = freqStart + (freqEnd - freqStart) * t;
 
-            if (vibratoDepth > 0.0f && vibratoRate > 0.0f) {
-                float time = (float) i / SAMPLE_RATE;
-                freq *= 1.0f + vibratoDepth * (float) Math.sin(2.0 * Math.PI * vibratoRate * time);
+            /*
+             * Normalized sound position.
+             *
+             * Using totalFrames - 1 means the final sample
+             * actually reaches t = 1.0.
+             */
+            float t =
+                    totalFrames <= 1
+                            ? 1.0f
+                            : (float) i /
+                              (float) (totalFrames - 1);
+
+            // ----------------------------------------------------
+            // FREQUENCY
+            // ----------------------------------------------------
+
+            float freq;
+
+            if (exponentialSweep) {
+
+                /*
+                 * Exponential interpolation in frequency.
+                 *
+                 * This corresponds to linear movement in
+                 * logarithmic pitch space.
+                 */
+                freq =
+                        freqStart *
+                                (float) Math.pow(
+                                        freqEnd / freqStart,
+                                        t
+                                );
+
+            } else {
+
+                /*
+                 * Linear interpolation is required when
+                 * either frequency is zero.
+                 */
+                freq =
+                        freqStart +
+                                (freqEnd - freqStart) * t;
             }
-            if (freq < 0.0f) {
-                freq = 0.0f;
+
+            // ----------------------------------------------------
+            // VIBRATO
+            // ----------------------------------------------------
+
+            if (vibratoDepth > 0.0f &&
+                    vibratoRate > 0.0f) {
+
+                float time =
+                        (float) i / SAMPLE_RATE;
+
+                freq *=
+                        1.0f +
+                                vibratoDepth *
+                                        (float) Math.sin(
+                                                2.0 *
+                                                        Math.PI *
+                                                        vibratoRate *
+                                                        time
+                                        );
             }
+
+            freq = Math.max(0.0f, freq);
+
+            // ----------------------------------------------------
+            // OSCILLATOR
+            // ----------------------------------------------------
 
             float sample;
+
             switch (waveform) {
-                case SQUARE:
-                    sample = (phase % 1.0) < duty ? 1.0f : -1.0f;
+
+                case SQUARE: {
+                    double p = phase % 1.0;
+
+                    sample =
+                            p < duty
+                                    ? 1.0f
+                                    : -1.0f;
+
                     break;
-                case SAW:
-                    sample = (float) (2.0 * (phase % 1.0) - 1.0);
+                }
+
+                case SAW: {
+                    double p = phase % 1.0;
+
+                    sample =
+                            (float) (
+                                    2.0 * p - 1.0
+                            );
+
                     break;
+                }
+
                 case TRIANGLE: {
                     double p = phase % 1.0;
-                    sample = (float) (p < 0.5 ? 4.0 * p - 1.0 : 3.0 - 4.0 * p);
+
+                    sample =
+                            (float) (
+                                    p < 0.5
+                                            ? 4.0 * p - 1.0
+                                            : 3.0 - 4.0 * p
+                            );
+
                     break;
                 }
+
                 case NOISE: {
-                    int period = freq > 0.0f ? Math.max(1, (int) (SAMPLE_RATE / (freq * 2.0f))) : 1;
+
+                    /*
+                     * Sample-and-hold noise.
+                     *
+                     * Higher frequency = shorter random
+                     * value duration.
+                     */
+                    int period =
+                            freq > 0.0f
+                                    ? Math.max(
+                                    1,
+                                    (int) (
+                                            SAMPLE_RATE /
+                                            (freq * 2.0f)
+                                    )
+                            )
+                                    : 1;
+
                     if (noiseCounter <= 0) {
-                        noiseValue = random.nextFloat() * 2.0f - 1.0f;
+
+                        noiseValue =
+                                random.nextFloat() *
+                                        2.0f -
+                                        1.0f;
+
                         noiseCounter = period;
                     }
+
                     noiseCounter--;
+
                     sample = noiseValue;
+
                     break;
                 }
+
                 case SINE:
                 default:
-                    sample = (float) Math.sin(2.0 * Math.PI * phase);
+
+                    sample =
+                            (float) Math.sin(
+                                    2.0 *
+                                            Math.PI *
+                                            phase
+                            );
+
                     break;
             }
 
-            phase += freq / SAMPLE_RATE;
+            // ----------------------------------------------------
+            // PHASE
+            // ----------------------------------------------------
 
-            if (distortion > 0.0f) {
-                sample = (float) Math.tanh(sample * drive);
+            phase +=
+                    freq / SAMPLE_RATE;
+
+            /*
+             * Keep phase reasonably small during long sounds.
+             */
+            if (phase >= 1048576.0) {
+                phase %= 1.0;
             }
 
+            // ----------------------------------------------------
+            // DISTORTION
+            // ----------------------------------------------------
+
+            if (distortion > 0.0f) {
+
+                sample =
+                        (float) Math.tanh(
+                                sample * drive
+                        );
+            }
+
+            // ----------------------------------------------------
+            // LOW-PASS
+            // ----------------------------------------------------
+
             if (lpAlpha > 0.0f) {
-                lpState += lpAlpha * (sample - lpState);
+
+                lpState +=
+                        lpAlpha *
+                                (sample - lpState);
+
                 sample = lpState;
             }
 
+            // ----------------------------------------------------
+            // HIGH-PASS
+            // ----------------------------------------------------
+
             if (hpAlpha > 0.0f) {
-                hpState = (1.0f - hpAlpha) * (hpState + sample - hpPrevInput);
+
+                hpState =
+                        (1.0f - hpAlpha) *
+                                (hpState +
+                                        sample -
+                                        hpPrevInput);
+
                 hpPrevInput = sample;
+
                 sample = hpState;
             }
 
+            // ----------------------------------------------------
+            // ADSR ENVELOPE
+            // ----------------------------------------------------
+
             float env;
-            if (i < attackEnd) {
-                env = i / attackEnd;
-            } else if (i < decayEnd) {
-                float p = (i - attackEnd) / Math.max(1.0f, decayEnd - attackEnd);
-                env = 1.0f + (sustainLevel - 1.0f) * p;
-            } else if (i < sustainEnd) {
+
+            if (attackEnd > 0.0f &&
+                    i < attackEnd) {
+
+                /*
+                 * Attack:
+                 *
+                 * 0 → 1
+                 */
+                env =
+                        i / attackEnd;
+
+            } else if (
+                    decay > 0.0f &&
+                            i < decayEnd) {
+
+                /*
+                 * Decay:
+                 *
+                 * 1 → sustain level
+                 */
+                float p =
+                        (i - attackEnd) /
+                                Math.max(
+                                        1.0f,
+                                        decayEnd - attackEnd
+                                );
+
+                env =
+                        1.0f +
+                                (sustainLevel - 1.0f) *
+                                        p;
+
+            } else if (
+                    i < sustainEnd) {
+
+                /*
+                 * Sustain.
+                 */
                 env = sustainLevel;
+
             } else {
-                float p = (i - sustainEnd) / Math.max(1.0f, totalFrames - sustainEnd);
-                env = sustainLevel * (1.0f - p);
+
+                /*
+                 * Release:
+                 *
+                 * sustain level → 0
+                 */
+                float releaseLength =
+                        Math.max(
+                                1.0f,
+                                totalFrames - sustainEnd
+                        );
+
+                float p =
+                        (i - sustainEnd) /
+                                releaseLength;
+
+                p = Mathf.clamp01(p);
+
+                env =
+                        sustainLevel *
+                                (1.0f - p);
             }
 
-            if (tremoloDepth > 0.0f && tremoloRate > 0.0f) {
-                float time = (float) i / SAMPLE_RATE;
-                env *= 1.0f - tremoloDepth * 0.5f * (1.0f + (float) Math.sin(2.0 * Math.PI * tremoloRate * time));
+            // ----------------------------------------------------
+            // TREMOLO
+            // ----------------------------------------------------
+
+            if (tremoloDepth > 0.0f &&
+                    tremoloRate > 0.0f) {
+
+                float time =
+                        (float) i / SAMPLE_RATE;
+
+                float modulation =
+                        0.5f +
+                                0.5f *
+                                        (float) Math.sin(
+                                                2.0 *
+                                                        Math.PI *
+                                                        tremoloRate *
+                                                        time
+                                        );
+
+                /*
+                 * modulation is 0..1.
+                 *
+                 * The resulting amplitude is:
+                 *
+                 * 1 → 1 - depth
+                 */
+                env *=
+                        1.0f -
+                                tremoloDepth *
+                                        modulation;
             }
 
-            int value = (int) (sample * env * gain * 32767.0f);
+            // ----------------------------------------------------
+            // OUTPUT
+            // ----------------------------------------------------
+
+            float output =
+                    sample *
+                            env *
+                            gain;
+
+            int value =
+                    Math.round(
+                            output * 32767.0f
+                    );
+
+            /*
+             * Clamp to signed 16-bit PCM.
+             */
             if (value > 32767) {
                 value = 32767;
             } else if (value < -32768) {
                 value = -32768;
             }
+
             pcm[i] = (short) value;
         }
 
+        // ========================================================
+        // SOUND OBJECT
+        // ========================================================
+
         Sound file = new Sound();
+
         file.channels = 1;
         file.samplerate = SAMPLE_RATE;
         file.samples = totalFrames;
         file.pcm = pcm;
+
         return file;
     }
 
+    // ============================================================
+    // FILTER MATH
+    // ============================================================
+
+    /**
+     * Calculates the coefficient for a first-order filter.
+     */
     private static float filterAlpha(float cutoffHz) {
-        float rc = 1.0f / (2.0f * (float) Math.PI * cutoffHz);
-        float dt = 1.0f / SAMPLE_RATE;
+
+        /*
+         * Prevent absurd cutoff values from producing
+         * strange coefficients.
+         */
+        cutoffHz =
+                Math.max(
+                        0.0001f,
+                        Math.min(
+                                cutoffHz,
+                                SAMPLE_RATE * 0.49f
+                        )
+                );
+
+        float rc =
+                1.0f /
+                        (
+                                2.0f *
+                                        (float) Math.PI *
+                                        cutoffHz
+                        );
+
+        float dt =
+                1.0f / SAMPLE_RATE;
+
         return dt / (rc + dt);
     }
 }
