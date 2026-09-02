@@ -6,7 +6,6 @@ import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.awt.image.VolatileImage;
 
 public class GameWindow extends Canvas {
 
@@ -106,7 +105,6 @@ public class GameWindow extends Canvas {
 
     private final FramebufferPixelGraphics graphics;
     private final BufferedImage backBuffer;
-    private VolatileImage vImg;
     public boolean captureMouseByDefault = false;
 
     public GameWindow(String title, int width, int height)
@@ -395,34 +393,17 @@ public class GameWindow extends Canvas {
         int h = getHeight();
         if (w <= 0 || h <= 0) return;
 
-        // Ensure we have a BufferStrategy
         if (getBufferStrategy() == null) {
             createBufferStrategy(2);
         }
         BufferStrategy bs = getBufferStrategy();
         if (bs == null) return;
 
-        // Validate or recreate the VolatileImage for HW-accelerated scaling
-        GraphicsConfiguration gc = getGraphicsConfiguration();
-        int iw = internalResolution.x;
-        int ih = internalResolution.y;
-        if (vImg == null || vImg.getWidth() != iw || vImg.getHeight() != ih
-                || vImg.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE) {
-            if (vImg != null) vImg.flush();
-            vImg = gc.createCompatibleVolatileImage(iw, ih, Transparency.OPAQUE);
-        }
-
-        // Blit the BufferedImage into the VolatileImage (GPU upload)
-        Graphics2D vg = vImg.createGraphics();
-        vg.drawImage(backBuffer, 0, 0, null);
-        vg.dispose();
-
-        // Draw the VolatileImage scaled to the canvas via BufferStrategy
         do {
             do {
                 Graphics2D g = (Graphics2D) bs.getDrawGraphics();
                 g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-                g.drawImage(vImg, 0, 0, w, h, null);
+                g.drawImage(backBuffer, 0, 0, w, h, null);
                 g.dispose();
             } while (bs.contentsRestored());
             bs.show();
