@@ -1,8 +1,8 @@
 # BerryNgine
 
-BerryNgine is a small, self-contained 2D game engine written in pure Java. It is built around a **software pixel buffer** that you draw into directly, giving you complete, deterministic control over every pixel while still being fast enough for real-time games.
+BerryNgine is a small, self-contained 2D game berryngine written in pure Java. It is built around a **software pixel buffer** that you draw into directly, giving you complete, deterministic control over every pixel while still being fast enough for real-time games.
 
-There are no external dependencies: it uses only the standard JDK (`javax.swing` for the window, `javax.sound.sampled` for audio, and `java.awt.image` for image I/O). This makes it easy to drop into any Java project, ship as a single `.jar`, and reason about exactly what the engine is doing under the hood.
+There are no external dependencies: it uses only the standard JDK (`javax.swing` for the window, `javax.sound.sampled` for audio, and `java.awt.image` for image I/O). This makes it easy to drop into any Java project, ship as a single `.jar`, and reason about exactly what the berryngine is doing under the hood.
 
 ---
 
@@ -35,7 +35,7 @@ There are no external dependencies: it uses only the standard JDK (`javax.swing`
 BerryNgine is designed for developers who want the feel of a retro, sprite-based game with the convenience of a modern Java toolchain.
 
 - **Software rendering first.** Every frame is drawn into an `int[]` pixel buffer in ARGB format. There is no hidden GPU state, no shader compilation, and no surprises about how a draw call will be interpreted.
-- **Pixel-perfect scaling.** The window is decoupled from the internal resolution. You render at a small, fixed resolution (e.g., 320x180) and the engine scales it up with nearest-neighbor interpolation, preserving crisp pixel art.
+- **Pixel-perfect scaling.** The window is decoupled from the internal resolution. You render at a small, fixed resolution (e.g., 320x180) and the berryngine scales it up with nearest-neighbor interpolation, preserving crisp pixel art.
 - **Immediate-mode API.** You draw directly inside `Scene.render(...)`. There are no scene-node hierarchies, no retained UI trees, and no mandatory entity systems. You are free to build those on top if you want them.
 - **Fixed timestep for logic, variable timestep for rendering.** Physics and gameplay update at a configurable fixed rate while the renderer runs as fast as the display loop allows.
 - **Zero dependencies.** If you have a JDK, you can build and run BerryNgine.
@@ -60,12 +60,12 @@ If you have ever wanted to write a game where you can literally `setPixel(x, y, 
 
 ## Quick Start
 
-A BerryNgine program is a class that implements `engine.Scene` and a `main` method that builds and runs a `GameWindow`.
+A BerryNgine program is a class that implements `berryngine` and a `main` method that builds and runs a `GameWindow`.
 
 ```java
 package game;
 
-import engine.*;
+import berryngine.*;
 
 public class Main {
 
@@ -90,10 +90,12 @@ public class Main {
 
     static class DemoScene implements Scene {
         @Override
-        public void onSceneEnter(GameWindow gw) {}
+        public void onSceneEnter(GameWindow gw) {
+        }
 
         @Override
-        public void onSceneExit(GameWindow gw) {}
+        public void onSceneExit(GameWindow gw) {
+        }
 
         @Override
         public void update(GameWindow gw, float dt) {
@@ -107,9 +109,9 @@ public class Main {
             pg.clear(Color.DARK_BLUE);
             pg.fillRect(10, 10, 60, 60, Color.RED);
             pg.renderString(SpriteSheetFont.START2P,
-                            "HELLO BERRYNGINE",
-                            12, 90,
-                            Color.WHITE);
+                    "HELLO BERRYNGINE",
+                    12, 90,
+                    Color.WHITE);
         }
     }
 }
@@ -133,7 +135,7 @@ javac -d out $(find src -name "*.java")
 java -cp out game.Main
 ```
 
-The engine ships with one embedded asset, a 16x16 pixel font atlas at `src/engine/default_assets/fonts/start2p_16x16.png`, used by `SpriteSheetFont.START2P`.
+The berryngine ships with one embedded asset, a 16x16 pixel font atlas at `berryngine`, used by `SpriteSheetFont.START2P`.
 
 ---
 
@@ -380,10 +382,16 @@ BerryNgine supports two kinds of fonts:
 PC Screen Font v1 files can be loaded with `Utils.loadFontFromResources(...)` or `Utils.loadFontFromGameInstall(...)`.
 
 ```java
-BitmapFont font = Utils.loadFontFromResources("/engine/default_assets/fonts/8x16.psf");
-pg.renderString(font, "Hello", 10, 10, Color.WHITE);
-pg.renderString(font, "With BG", 10, 30, Color.WHITE, Color.BLACK);
-pg.renderString(font, "Big", 10, 50, Color.WHITE, Color.BLACK, 2); // scaled 2x
+BitmapFont font = Utils.loadFontFromResources("/berryngine/default_assets/fonts/8x16.psf");
+pg.
+
+renderString(font, "Hello",10,10,Color.WHITE);
+pg.
+
+renderString(font, "With BG",10,30,Color.WHITE, Color.BLACK);
+pg.
+
+renderString(font, "Big",10,50,Color.WHITE, Color.BLACK, 2); // scaled 2x
 ```
 
 ### Sprite-Sheet Fonts
@@ -484,7 +492,7 @@ Animation.updateRegistered(dt);
 
 ## Input
 
-`Input` is a static, frame-synchronized input state. The engine populates it; you only read from it.
+`Input` is a static, frame-synchronized input state. The berryngine populates it; you only read from it.
 
 ### Keyboard
 
@@ -557,7 +565,7 @@ Sound jumpSfx = Utils.loadSoundFromResources("/assets/jump.qoa");
 Sound music   = Utils.loadSoundFromGameInstall("data/theme.qoa");
 ```
 
-The engine supports the QOA audio format (`QOADecoder`).
+The berryngine supports the QOA audio format (`QOADecoder`).
 
 ### Playing Sounds
 
@@ -632,7 +640,7 @@ PostFX.pixelate(pg, 4);
 PostFX.colorReplace(pg, Color.BLUE, Color.GREEN, 16);
 ```
 
-Because the engine is software-rendered, you can chain effects freely:
+Because the berryngine is software-rendered, you can chain effects freely:
 
 ```java
 PostFX.tint(pg, Color.ORANGE, 0.15f);
@@ -719,7 +727,7 @@ public void update(GameWindow gw, float dt) {
 
 ### Asset Loading
 
-`Utils` is the central place for loading engine assets.
+`Utils` is the central place for loading berryngine assets.
 
 ```java
 // From the classpath / resources
@@ -794,7 +802,8 @@ If you prefer the native cursor, leave the software cursor unset and use standar
 ### Moving a Player with a Camera
 
 ```java
-import engine.*;
+import berryngine.*;
+
 import java.awt.event.KeyEvent;
 
 public class PlatformerScene implements Scene {
@@ -803,8 +812,13 @@ public class PlatformerScene implements Scene {
     Vec2 vel = new Vec2(0, 0);
     PixelGraphics playerGfx = ShapeGenerator.rectangle(16, 16, Color.LIME);
 
-    @Override public void onSceneEnter(GameWindow gw) {}
-    @Override public void onSceneExit(GameWindow gw) {}
+    @Override
+    public void onSceneEnter(GameWindow gw) {
+    }
+
+    @Override
+    public void onSceneExit(GameWindow gw) {
+    }
 
     @Override
     public void fixedUpdate(GameWindow gw, float fixedDt) {
