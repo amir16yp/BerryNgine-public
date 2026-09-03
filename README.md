@@ -2,7 +2,7 @@
 
 BerryNgine is a small, self-contained 2D game engine written in pure Java. It is built around a **software pixel buffer** that you draw into directly, giving you complete, deterministic control over every pixel while still being fast enough for real-time games.
 
-There are no external dependencies: it uses only the standard JDK (`javax.swing` for the window, `javax.sound.sampled` for audio, and `java.awt.image` for image I/O). This makes it easy to drop into any Java project, ship as a single `.jar`, and reason about exactly what the berryngine is doing under the hood.
+There are no external dependencies: it uses only the standard JDK (`javax.swing` for the window, `javax.sound.sampled` for audio, and `java.awt.image` for image I/O). This makes it easy to drop into any Java project, ship as a single `.jar`, and reason about exactly what the engine is doing under the hood.
 
 ---
 
@@ -35,7 +35,7 @@ There are no external dependencies: it uses only the standard JDK (`javax.swing`
 BerryNgine is designed for developers who want the feel of a retro, sprite-based game with the convenience of a modern Java toolchain.
 
 - **Software rendering first.** Every frame is drawn into an `int[]` pixel buffer in ARGB format. There is no hidden GPU state, no shader compilation, and no surprises about how a draw call will be interpreted.
-- **Pixel-perfect scaling.** The window is decoupled from the internal resolution. You render at a small, fixed resolution (e.g., 320x180) and the berryngine scales it up with nearest-neighbor interpolation, preserving crisp pixel art.
+- **Pixel-perfect scaling.** The window is decoupled from the internal resolution. You render at a small, fixed resolution (e.g., 320x180) and the engine scales it up with nearest-neighbor interpolation, preserving crisp pixel art.
 - **Immediate-mode API.** You draw directly inside `Scene.render(...)`. There are no scene-node hierarchies, no retained UI trees, and no mandatory entity systems. You are free to build those on top if you want them.
 - **Fixed timestep for logic, variable timestep for rendering.** Physics and gameplay update at a configurable fixed rate while the renderer runs as fast as the display loop allows.
 - **Zero dependencies.** If you have a JDK, you can build and run BerryNgine.
@@ -135,7 +135,7 @@ javac -d out $(find src -name "*.java")
 java -cp out game.Main
 ```
 
-The berryngine ships with one embedded asset, a 16x16 pixel font atlas at `berryngine`, used by `SpriteSheetFont.START2P`.
+The engine ships with one embedded asset, a 16x16 pixel font atlas at `berryngine`, used by `SpriteSheetFont.START2P`.
 
 ---
 
@@ -492,7 +492,7 @@ Animation.updateRegistered(dt);
 
 ## Input
 
-`Input` is a static, frame-synchronized input state. The berryngine populates it; you only read from it.
+`Input` is a static, frame-synchronized input state. The engine populates it; you only read from it.
 
 ### Keyboard
 
@@ -565,7 +565,7 @@ Sound jumpSfx = Utils.loadSoundFromResources("/assets/jump.qoa");
 Sound music   = Utils.loadSoundFromGameInstall("data/theme.qoa");
 ```
 
-The berryngine supports the QOA audio format (`QOADecoder`).
+The engine supports the QOA audio format (`QOADecoder`).
 
 ### Playing Sounds
 
@@ -640,7 +640,7 @@ PostFX.pixelate(pg, 4);
 PostFX.colorReplace(pg, Color.BLUE, Color.GREEN, 16);
 ```
 
-Because the berryngine is software-rendered, you can chain effects freely:
+Because The engine is software-rendered, you can chain effects freely:
 
 ```java
 PostFX.tint(pg, Color.ORANGE, 0.15f);
