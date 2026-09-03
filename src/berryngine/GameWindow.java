@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.lang.reflect.Method;
 
 public class GameWindow extends Canvas {
 
@@ -82,8 +83,45 @@ public class GameWindow extends Canvas {
             window.gameLoop.setFixedHz(fixedHz);
             if (fullscreen) window.setBorderlessFullscreen(true);
             window.captureMouseByDefault = this.defaultMouseCapture;
-            if (icon != null) window.frame.setIconImage(icon.toBufferedImage());
+            if (icon != null)
+            {
+                setIcon(window.frame, icon.toBufferedImage());
+            }
             return window;
+        }
+
+        private static void setIcon(Frame frame, BufferedImage icon)
+        {
+            frame.setIconImage(icon);
+
+            try
+            {
+                Class<?> taskbar = Class.forName("java.awt.Taskbar");
+
+                Method supported = taskbar.getMethod("isTaskbarSupported");
+                if (!(Boolean) supported.invoke(null))
+                    return;
+
+                Object instance = taskbar.getMethod("getTaskbar").invoke(null);
+
+                Class<?> feature = Class.forName("java.awt.Taskbar$Feature");
+                Object iconFeature = Enum.valueOf(
+                        (Class<Enum>) feature,
+                        "ICON_IMAGE"
+                );
+
+                if (!(Boolean) taskbar.getMethod(
+                        "isSupported", feature
+                ).invoke(instance, iconFeature))
+                    return;
+
+                taskbar.getMethod(
+                        "setIconImage", Image.class
+                ).invoke(instance, icon);
+            }
+            catch (Throwable ignored)
+            {
+            }
         }
 
         /**
