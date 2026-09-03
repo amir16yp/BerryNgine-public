@@ -129,4 +129,15 @@ public final class BitmapFont {
 
         return img;
     }
+
+    public static final BitmapFont DEFAULT_8X9 = Utils.loadFontFromResources("/berryngine/default_assets/fonts/default8x9.psf");
+
+    /*
+    public static void main(String[] args)
+    {
+        // check that it works
+        Utils.saveScreenshot(BitmapFont.DEFAULT_8X9.createPreview());
+    }
+
+     */
 }
