@@ -28,6 +28,7 @@ public class GameWindow extends Canvas {
         private int targetFps = 0;
         private int fixedHz = 60;
         private boolean defaultMouseCapture = false;
+        private PixelGraphics icon = null;
 
         private Builder(String title, IVec2 internalResolution) {
             this.title = title;
@@ -70,12 +71,18 @@ public class GameWindow extends Canvas {
             return this;
         }
 
+        public Builder icon(PixelGraphics icon) {
+            this.icon = icon;
+            return this;
+        }
+
         public GameWindow build() {
             GameWindow window = new GameWindow(title, internalResolution, windowScale, resizable);
             window.gameLoop.setTargetFps(targetFps);
             window.gameLoop.setFixedHz(fixedHz);
             if (fullscreen) window.setBorderlessFullscreen(true);
             window.captureMouseByDefault = this.defaultMouseCapture;
+            if (icon != null) window.frame.setIconImage(icon.toBufferedImage());
             return window;
         }
 
