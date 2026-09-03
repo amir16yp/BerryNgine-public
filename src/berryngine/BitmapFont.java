@@ -133,11 +133,16 @@ public final class BitmapFont {
     public static final BitmapFont DEFAULT_8X9 = Utils.loadFontFromResources("/berryngine/default_assets/fonts/default8x9.psf");
 
     /*
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         // check that it works
-        Utils.saveScreenshot(BitmapFont.DEFAULT_8X9.createPreview());
-    }
+        Utils.saveScreenshot(BitmapFont.DEFAULT_8X9.createPreview(), "defaultpsffont.png");
 
+        // check spritesheetfont too
+        String text = "Testing bla bla bla bla bla";
+
+        PixelGraphics pg = new PixelGraphics(16 * text.length(), 16); // around 300 characters
+        pg.renderString(SpriteSheetFont.START2P,  text, 0, 0, Color.RED);
+        Utils.saveScreenshot(pg, "defaultspritesheetfont.png");
+    }
      */
 }

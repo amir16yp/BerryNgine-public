@@ -53,5 +53,5 @@ public final class SpriteSheetFont {
         }
     }
 
-    public static SpriteSheetFont START2P = new SpriteSheetFont(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", Utils.loadTextureAtlasFromResources("/berryngine/default_assets/fonts/start2p_16x16.png", 16, 16));
+    public static SpriteSheetFont START2P = new SpriteSheetFont(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", Utils.loadTextureAtlasFromResources("/berryngine/default_assets/fonts/start2p_16x16.qoi", 16, 16));
 }
