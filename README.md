@@ -1,6 +1,6 @@
 # BerryNgine
 
-BerryNgine is a small, self-contained 2D game berryngine written in pure Java. It is built around a **software pixel buffer** that you draw into directly, giving you complete, deterministic control over every pixel while still being fast enough for real-time games.
+BerryNgine is a small, self-contained 2D game game written in pure Java. It is built around a **software pixel buffer** that you draw into directly, giving you complete, deterministic control over every pixel while still being fast enough for real-time games.
 
 There are no external dependencies: it uses only the standard JDK (`javax.swing` for the window, `javax.sound.sampled` for audio, and `java.awt.image` for image I/O). This makes it easy to drop into any Java project, ship as a single `.jar`, and reason about exactly what the berryngine is doing under the hood.
 
