@@ -129,6 +129,17 @@ public final class Utils {
         return new PixelGraphics(copy, width, height);
     }
 
+    public static MusicSynth loadMidiFromResources(String resourcePath) {
+        return MidiImporter.load(getFileFromResources(resourcePath));
+    }
+
+    public static MusicSynth loadMidiFromFile(File file) {
+        return MidiImporter.load(file);
+    }
+
+    public static MusicSynth loadMidiFromGameInstall(String relativePath) {
+        return MidiImporter.load(new File(GameInformation.getGameInstallFolder(), relativePath));
+    }
 
     public static BitmapFont loadFontFromGameInstall(String relativePath) {
         return PSF1Parser.parse(getFileFromGameInstall(relativePath));
