@@ -1030,9 +1030,5 @@ public void render(GameWindow gw, FramebufferPixelGraphics pg) {
 
 Because BerryNgine is a software renderer, the fastest way to keep a game smooth is to reduce the number of pixels and objects touched every frame. Keep your internal resolution small (for example 320x180 or 426x240) and let the window scale it up, since filling a 1920x1080 buffer in Java is expensive even for simple scenes. Cache every asset you can: load textures, fonts, and `ShapeGenerator` sprites once in `onSceneEnter` or a static initializer, then draw the cached `PixelGraphics` each frame instead of regenerating them. Reuse off-screen buffers instead of `new PixelGraphics(...)` inside the render loop to avoid GC pressure. Cull objects with the camera (`pg.isVisibleWorld(...)`) so you only draw what is on screen, and batch similar draw calls together to avoid repeated setup. Prefer whole-buffer operations like `drawImage` over per-pixel loops, and use `PostFX` only when necessary because they touch every pixel. Finally, profile before optimizing: measure with and without an effect or a group of objects so you are solving the real bottleneck rather than guessing.
 
----
-
-BerryNgine is intentionally small. It gives you a window, a loop, a pixel buffer, and a set of helpful utilities, then gets out of your way. Build whatever game architecture you like on top of it, from a single-screen arcade prototype to a multi-scene strategy game.
-
 ```java
 {{ ... }}
