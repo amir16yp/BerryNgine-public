@@ -324,21 +324,60 @@ public final class ShapeGenerator {
     }
 
     public static PixelGraphics heart(int width, int height, int color) {
+        return filledHeart(width, height, color);
+    }
+
+    public static PixelGraphics filledHeart(int width, int height, int color) {
         PixelGraphics g = new PixelGraphics(width, height);
-        float cx = width / 2.0f;
-        float cy = height * 0.65f;
-        float scale = Math.min(width, height) / 16.0f;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                float dx = (x - cx) / scale;
-                float dy = (cy - y) / scale;
-                float a = dx * dx + dy * dy - 1.0f;
-                if (a * a * a - dx * dx * dy * dy * dy <= 0.0f) {
-                    g.setPixel(x, y, color);
-                }
-            }
+        int[][] points = computeHeartPoints(width, height);
+        fillPolygon(g, points[0], points[1], points[0].length, color);
+        return g;
+    }
+
+    public static PixelGraphics outlineHeart(int width, int height, int color) {
+        PixelGraphics g = new PixelGraphics(width, height);
+        int[][] points = computeHeartPoints(width, height);
+        int n = points[0].length;
+        for (int i = 0; i < n; i++) {
+            int j = (i + 1) % n;
+            g.drawLine(points[0][i], points[1][i], points[0][j], points[1][j], color);
         }
         return g;
+    }
+
+    private static int[][] computeHeartPoints(int width, int height) {
+        int segments = Math.max(64, Math.max(width, height) * 2);
+        float[] hxs = new float[segments];
+        float[] hys = new float[segments];
+        float minX = Float.MAX_VALUE, maxX = -Float.MAX_VALUE;
+        float minY = Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+
+        for (int i = 0; i < segments; i++) {
+            float t = i * Mathf.TWO_PI / segments;
+            float sinT = Mathf.sin(t);
+            hxs[i] = 16.0f * sinT * sinT * sinT;
+            hys[i] = 13.0f * Mathf.cos(t) - 5.0f * Mathf.cos(2.0f * t) - 2.0f * Mathf.cos(3.0f * t) - Mathf.cos(4.0f * t);
+            minX = Math.min(minX, hxs[i]);
+            maxX = Math.max(maxX, hxs[i]);
+            minY = Math.min(minY, hys[i]);
+            maxY = Math.max(maxY, hys[i]);
+        }
+
+        float spanX = maxX - minX;
+        float spanY = maxY - minY;
+        float scale = Math.min((width - 1) / spanX, (height - 1) / spanY);
+        float centerX = (minX + maxX) * 0.5f;
+        float centerY = (minY + maxY) * 0.5f;
+        float offsetX = width * 0.5f - centerX * scale;
+        float offsetY = height * 0.5f + centerY * scale;
+
+        int[] xPoints = new int[segments];
+        int[] yPoints = new int[segments];
+        for (int i = 0; i < segments; i++) {
+            xPoints[i] = (int) (hxs[i] * scale + offsetX);
+            yPoints[i] = (int) (-hys[i] * scale + offsetY);
+        }
+        return new int[][]{xPoints, yPoints};
     }
 
     public static PixelGraphics bolt(int width, int height, int color) {

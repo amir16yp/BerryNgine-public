@@ -216,7 +216,7 @@ The default `onWindowFocusChanged` will capture/release the mouse if `captureMou
 
 ## Rendering
 
-All drawing happens through `PixelGraphics` (or its subclass `FramebufferPixelGraphics`). The buffer is a raw `int[]` in `0xAARRGGBB` format.
+`PixelGraphics` is both a drawing surface and a sprite/texture buffer. It stores a raw `int[]` in `0xAARRGGBB` format, and the same drawing methods work on any instance, including its subclass `FramebufferPixelGraphics` for the screen buffer.
 
 ### Drawing Primitives
 
