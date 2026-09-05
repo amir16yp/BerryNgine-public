@@ -85,7 +85,7 @@ public class GameWindow extends Canvas {
             window.captureMouseByDefault = this.defaultMouseCapture;
             if (icon != null)
             {
-                setIcon(window.frame, icon.toBufferedImage());
+                setIcon(window.frame, icon.toBufferedImage()    );
             }
             return window;
         }

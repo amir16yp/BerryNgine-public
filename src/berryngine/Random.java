@@ -173,6 +173,66 @@ public final class Random {
         public Vec2 nextVec2InRect(float x, float y, float width, float height) {
             return nextVec2(x, y, x + width, y + height);
         }
+
+        public Vec2 nextVec2Range(float minX, float minY, float maxX, float maxY) {
+            return nextVec2(minX, minY, maxX, maxY);
+        }
+
+        public Vec2 nextVec2Range(Vec2 min, Vec2 max) {
+            return nextVec2(min, max);
+        }
+
+        public Vec3 nextVec3(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+            return new Vec3(nextFloat(minX, maxX), nextFloat(minY, maxY), nextFloat(minZ, maxZ));
+        }
+
+        public Vec3 nextVec3(Vec3 min, Vec3 max) {
+            return new Vec3(nextFloat(min.x, max.x), nextFloat(min.y, max.y), nextFloat(min.z, max.z));
+        }
+
+        public Vec3 nextVec3Range(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+            return nextVec3(minX, minY, minZ, maxX, maxY, maxZ);
+        }
+
+        public Vec3 nextVec3Range(Vec3 min, Vec3 max) {
+            return nextVec3(min, max);
+        }
+
+        public IVec2 nextIVec2(int minX, int minY, int maxX, int maxY) {
+            return new IVec2(nextInt(minX, maxX), nextInt(minY, maxY));
+        }
+
+        public IVec2 nextIVec2(IVec2 min, IVec2 max) {
+            return new IVec2(nextInt(min.x, max.x), nextInt(min.y, max.y));
+        }
+
+        public IVec2 nextIVec2Range(int minX, int minY, int maxX, int maxY) {
+            return nextIVec2(minX, minY, maxX, maxY);
+        }
+
+        public IVec2 nextIVec2Range(IVec2 min, IVec2 max) {
+            return nextIVec2(min, max);
+        }
+
+        public IVec3 nextIVec3(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+            return new IVec3(nextInt(minX, maxX), nextInt(minY, maxY), nextInt(minZ, maxZ));
+        }
+
+        public IVec3 nextIVec3(IVec3 min, IVec3 max) {
+            return new IVec3(nextInt(min.x, max.x), nextInt(min.y, max.y), nextInt(min.z, max.z));
+        }
+
+        public IVec3 nextIVec3Range(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+            return nextIVec3(minX, minY, minZ, maxX, maxY, maxZ);
+        }
+
+        public IVec3 nextIVec3Range(IVec3 min, IVec3 max) {
+            return nextIVec3(min, max);
+        }
+
+        public int nextColor() {
+            return Color.fromRGB(nextInt(0, 256), nextInt(0, 256), nextInt(0, 256));
+        }
     }
 
     public static State newState() {
@@ -294,5 +354,65 @@ public final class Random {
 
     public static Vec2 nextVec2InRect(float x, float y, float width, float height) {
         return DEFAULT.nextVec2InRect(x, y, width, height);
+    }
+
+    public static Vec2 nextVec2Range(float minX, float minY, float maxX, float maxY) {
+        return DEFAULT.nextVec2Range(minX, minY, maxX, maxY);
+    }
+
+    public static Vec2 nextVec2Range(Vec2 min, Vec2 max) {
+        return DEFAULT.nextVec2Range(min, max);
+    }
+
+    public static Vec3 nextVec3(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        return DEFAULT.nextVec3(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static Vec3 nextVec3(Vec3 min, Vec3 max) {
+        return DEFAULT.nextVec3(min, max);
+    }
+
+    public static Vec3 nextVec3Range(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        return DEFAULT.nextVec3Range(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static Vec3 nextVec3Range(Vec3 min, Vec3 max) {
+        return DEFAULT.nextVec3Range(min, max);
+    }
+
+    public static IVec2 nextIVec2(int minX, int minY, int maxX, int maxY) {
+        return DEFAULT.nextIVec2(minX, minY, maxX, maxY);
+    }
+
+    public static IVec2 nextIVec2(IVec2 min, IVec2 max) {
+        return DEFAULT.nextIVec2(min, max);
+    }
+
+    public static IVec2 nextIVec2Range(int minX, int minY, int maxX, int maxY) {
+        return DEFAULT.nextIVec2Range(minX, minY, maxX, maxY);
+    }
+
+    public static IVec2 nextIVec2Range(IVec2 min, IVec2 max) {
+        return DEFAULT.nextIVec2Range(min, max);
+    }
+
+    public static IVec3 nextIVec3(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        return DEFAULT.nextIVec3(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static IVec3 nextIVec3(IVec3 min, IVec3 max) {
+        return DEFAULT.nextIVec3(min, max);
+    }
+
+    public static IVec3 nextIVec3Range(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        return DEFAULT.nextIVec3Range(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static IVec3 nextIVec3Range(IVec3 min, IVec3 max) {
+        return DEFAULT.nextIVec3Range(min, max);
+    }
+
+    public static int nextColor() {
+        return DEFAULT.nextColor();
     }
 }
