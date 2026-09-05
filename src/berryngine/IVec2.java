@@ -13,6 +13,12 @@ public final class IVec2 {
         this.y = y;
     }
 
+    public IVec2(float x, float y)
+    {
+        this.x = (int) x;
+        this.y = (int) y;
+    }
+
     public IVec2(IVec2 v) {
         this.x = v.x;
         this.y = v.y;

@@ -248,6 +248,11 @@ public final class Vec2 {
     // UTILITY
     // =========================
 
+    public IVec2 toIVec2()
+    {
+        return new IVec2(x, y);
+    }
+
     public Vec2 copy() {
         return new Vec2(x, y);
     }

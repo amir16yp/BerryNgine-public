@@ -14,6 +14,13 @@ public final class IVec3 {
         this.z = z;
     }
 
+    public IVec3(float x, float y, float z)
+    {
+        this.x = (int) x;
+        this.y = (int) y;
+        this.z = (int) z;
+    }
+
     public IVec3(IVec3 v) {
         this.x = v.x;
         this.y = v.y;

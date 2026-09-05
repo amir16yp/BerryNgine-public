@@ -326,6 +326,20 @@ public class GameWindow extends Canvas {
         return sceneManager.getScene();
     }
 
+    public <T extends Scene> boolean isScene(Class<T> type) {
+        return type.isInstance(sceneManager.getScene());
+    }
+
+    public <T extends Scene> T getScene(Class<T> type) {
+        Scene scene = sceneManager.getScene();
+
+        if (type.isInstance(scene)) {
+            return type.cast(scene);
+        }
+
+        return null;
+    }
+
     public void setTitle(String title) {
         frame.setTitle(title);
     }

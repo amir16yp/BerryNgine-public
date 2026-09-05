@@ -205,6 +205,11 @@ public final class Vec3 {
     // UTILITY
     // =========================
 
+    public IVec3 toIVec3()
+    {
+        return new IVec3(x, y, z);
+    }
+
     public Vec3 copy() {
         return new Vec3(x, y, z);
     }

@@ -15,7 +15,16 @@ public class PixelGraphics {
     public int[] pixels;
     public int width;
     public int height;
+    private IVec2 size;
     private float globalAlpha = 1.0f;
+
+    public IVec2 getSize() {
+        if (size == null)
+        {
+            size = new IVec2(width, height);
+        }
+        return size;
+    }
 
     // Scissor / clip rectangle (defaults to full buffer)
     private int clipX1, clipY1, clipX2, clipY2;
@@ -644,6 +653,11 @@ public class PixelGraphics {
         return new PixelGraphics(out, newW, newH);
     }
 
+    public PixelGraphics getSubImage(IVec2 pos, IVec2 size)
+    {
+        return getSubImage(pos.x, pos.y, size.x, size.y);
+    }
+
     public void drawTaperedLine(
             float x1, float y1,
             float x2, float y2,
@@ -977,6 +991,11 @@ public class PixelGraphics {
 
     public void drawImage(int[] srcPixels, int srcW, int srcH, IVec2 p) {
         drawImage(srcPixels, srcW, srcH, p.x, p.y);
+    }
+
+    public void drawImage(int[] srcPixels, IVec2 srcSize, IVec2 p)
+    {
+        drawImage(srcPixels, srcSize.x, srcSize.y, p.x, p.y);
     }
 
     public void drawImage(PixelGraphics src, IVec2 p) {

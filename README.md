@@ -52,9 +52,9 @@ If you have ever wanted to write a game where you can literally `setPixel(x, y, 
 | Rendering | `PixelGraphics`, `FramebufferPixelGraphics`, `Camera2D`, `Color`, `PostFX`, `Cursor` |
 | Primitives & shapes | `ShapeGenerator`, `TextureAtlas`, `BitmapFont`, `SpriteSheetFont`, `Animation` |
 | Input | `Input` |
-| Audio | `SoundSystem`, `AudioMixer`, `SoundSynth`, `Sound`, `QOADecoder` |
+| Audio | `SoundSystem`, `AudioMixer`, `SoundSynth`, `MusicSynth`, `MidiImporter`, `Sound`, `QOADecoder` |
 | Math & utilities | `Mathf`, `Vec2`, `Vec3`, `IVec2`, `IVec3`, `Random`, `Timer`, `Utils`, `GameInformation` |
-| Formats | `QOIDecoder`, `PSF1Parser` |
+| Formats | `QOIDecoder`, `MidiImporter`, `PSF1Parser` |
 
 ---
 
@@ -126,7 +126,7 @@ Compile and run. You should see a small blue window with a red rectangle and whi
 BerryNgine is a single Java source tree.
 
 - Source root: `src`
-- Engine package: `engine.*`
+- Engine package: `berryngine.*`
 - No Maven/Gradle dependencies required.
 - Compile everything under `src` with your IDE or with `javac`:
 
@@ -383,15 +383,9 @@ PC Screen Font v1 files can be loaded with `Utils.loadFontFromResources(...)` or
 
 ```java
 BitmapFont font = Utils.loadFontFromResources("/berryngine/default_assets/fonts/8x16.psf");
-pg.
-
-renderString(font, "Hello",10,10,Color.WHITE);
-pg.
-
-renderString(font, "With BG",10,30,Color.WHITE, Color.BLACK);
-pg.
-
-renderString(font, "Big",10,50,Color.WHITE, Color.BLACK, 2); // scaled 2x
+pg.renderString(font, "Hello",10,10,Color.WHITE);
+pg.renderString(font, "With BG",10,30,Color.WHITE, Color.BLACK);
+pg.renderString(font, "Big",10,50,Color.WHITE, Color.BLACK, 2); // scaled 2x
 ```
 
 ### Sprite-Sheet Fonts
@@ -552,26 +546,15 @@ When captured, raw mouse delta is reported via `Input.getMouseDeltaX/Y` instead 
 
 ## Audio
 
-BerryNgine has a custom software mixer built on `javax.sound.sampled`.
+BerryNgine uses a custom software mixer built on `javax.sound.sampled`. Audio assets and generated audio are represented by `Sound`, which contains signed 16-bit PCM samples. `SoundSystem` converts supported sample rates and mono or stereo input to its 44.1 kHz stereo output format.
 
-### Sound System
+### Sound System and Mixer
 
-`GameWindow` creates a `SoundSystem` and an `AudioMixer` automatically. You usually interact with the mixer.
-
-### Loading Sounds
+`GameWindow` creates a `SoundSystem` and an `AudioMixer` automatically. Use the mixer in game code so sounds can be assigned to volume groups and controlled together.
 
 ```java
-Sound jumpSfx = Utils.loadSoundFromResources("/assets/jump.qoa");
-Sound music   = Utils.loadSoundFromGameInstall("data/theme.qoa");
-```
-
-The engine supports the QOA audio format (`QOADecoder`).
-
-### Playing Sounds
-
-```java
-int handle = window.audioMixer.play("sfx", jumpSfx, 0.8f);
-window.audioMixer.play("music", music, 0.5f, true);  // looped
+Sound jump = Utils.loadSoundFromResources("/assets/jump.qoa");
+int handle = window.audioMixer.play(AudioMixer.SFX, jump, 0.8f);
 
 window.audioMixer.setVolume(handle, 0.4f);
 window.audioMixer.pause(handle);
@@ -579,49 +562,126 @@ window.audioMixer.resume(handle);
 window.audioMixer.stop(handle);
 ```
 
-### Mixer Groups
-
-Groups let you control volumes for whole categories:
+To play repeating music, pass `true` for the loop argument:
 
 ```java
-window.audioMixer.addDefaultGroups();  // master, sfx, music, ui
-window.audioMixer.setGroupVolume("music", 0.3f);
-window.audioMixer.setGroupVolume("sfx", 1.0f);
-window.audioMixer.stopGroup("music");
+Sound music = Utils.loadSoundFromGameInstall("data/theme.qoa");
+int musicHandle = window.audioMixer.play(AudioMixer.MUSIC, music, 0.5f, true);
+```
+
+### Mixer Groups
+
+`AudioMixer` defines `MASTER`, `SFX`, `MUSIC`, and `UI` names. `addDefaultGroups()` registers the non-master groups; unknown group names otherwise use full volume until configured.
+
+```java
+window.audioMixer.addDefaultGroups();
+window.audioMixer.setGroupVolume(AudioMixer.MUSIC, 0.3f);
+window.audioMixer.setGroupVolume(AudioMixer.SFX, 1.0f);
+window.audioMixer.stopGroup(AudioMixer.MUSIC);
 window.audioMixer.pauseAll();
 window.audioMixer.resumeAll();
 ```
 
 ### Procedural Sound Effects
 
-`SoundSynth` generates retro sound effects at runtime, so you can ship a game with no audio assets.
+`SoundSynth` creates one-shot sound effects at runtime. Presets include `laser`, `coin`, `explosion`, `jump`, `hit`, `powerup`, `blip`, `select`, `error`, `charge`, `death`, and `teleport`.
 
 ```java
 Sound laser = SoundSynth.laser().build();
-Sound coin  = SoundSynth.coin().build();
+Sound coin = SoundSynth.coin().build();
 Sound explosion = SoundSynth.explosion().build();
-Sound jump  = SoundSynth.jump().build();
-Sound hit   = SoundSynth.hit().build();
-Sound power = SoundSynth.powerup().build();
-Sound blip  = SoundSynth.blip().build();
 
-window.audioMixer.play("sfx", laser, 0.7f);
+window.audioMixer.play(AudioMixer.SFX, laser, 0.7f);
 ```
 
-You can also build custom waveforms with ADSR envelopes, vibrato, filters, and distortion:
+Custom effects can use sine, square, saw, triangle, or noise oscillators; MIDI-note pitch; exponential pitch sweeps; attack, decay, sustain-duration, sustain-level, and release controls; vibrato; tremolo; filters; duty cycle; deterministic noise; and distortion.
 
 ```java
-Sound weird = SoundSynth.create()
+Sound effect = SoundSynth.create()
     .waveform(SoundSynth.Waveform.SAW)
-    .midiNote(60)
     .sweepNotes(60, 72)
     .envelope(0.01f, 0.1f, 0.2f, 0.3f)
+    .sustainLevel(0.6f)
     .vibrato(0.05f, 8.0f)
-    .lowpass(2000f)
+    .tremolo(0.2f, 4.0f)
+    .lowpass(2000.0f)
     .distortion(0.2f)
     .gain(0.6f)
     .build();
 ```
+
+### Procedural Music
+
+`MusicSynth` sequences polyphonic notes in beats and renders the complete arrangement to a stereo `Sound`. It supports multiple tracks, chords, arpeggios, rests, absolute note placement, velocity, transposition, track volume, stereo panning, swing, and ping-pong delay.
+
+The built-in instruments are `lead()`, `bass()`, `pad()`, and `bell()`. A custom instrument can configure waveform, ADSR envelope, gain, square-wave duty cycle, vibrato, and additional harmonics.
+
+```java
+MusicSynth composition = MusicSynth.create()
+    .tempo(120.0f)
+    .gain(0.8f)
+    .swing(0.12f)
+    .delay(0.75f, 0.3f);
+
+int a3 = MusicSynth.note("A3");
+int a4 = MusicSynth.note("A4");
+
+composition.track(MusicSynth.Instrument.pad())
+    .volume(0.45f)
+    .pan(-0.2f)
+    .chord(MusicSynth.chord(a3, 3, 7), 4.0f, 0.7f)
+    .chord(MusicSynth.chord(a3 + 5, 4, 7), 4.0f, 0.7f)
+    .end();
+
+composition.track(MusicSynth.Instrument.lead().vibrato(0.01f, 5.0f))
+    .pan(0.2f)
+    .note(a4, 1.0f, 0.9f)
+    .note(MusicSynth.note("C5"), 0.5f, 0.75f)
+    .note(MusicSynth.note("E5"), 1.5f, 0.85f)
+    .rest(1.0f)
+    .arpeggio(MusicSynth.chord(a4, 3, 7, 12), 0.25f, 0.4f, 2);
+
+Sound song = composition.build();
+window.audioMixer.play(AudioMixer.MUSIC, song, 0.65f);
+```
+
+Durations passed to `note`, `chord`, `rest`, and `arpeggio` are measured in beats, not seconds. `noteAt(beat, midiNote, duration, velocity)` places a note without moving the track cursor. Named notes use scientific pitch notation such as `C4`, `F#4`, and `Bb4`.
+
+### MIDI Import
+
+Standard MIDI files can be converted directly into `MusicSynth` arrangements. Loading parses note starts and ends, timing, velocity, MIDI channels, the initial tempo event, and program changes. General MIDI program ranges are mapped to the closest available synthesized instrument.
+
+Load a MIDI file from the classpath:
+
+```java
+MusicSynth music = Utils.loadMidiFromResources("/music/theme.mid");
+Sound song = music.build();
+window.audioMixer.play(AudioMixer.MUSIC, song, 0.7f);
+```
+
+Load from an arbitrary `File` or relative to the game installation directory:
+
+```java
+MusicSynth fromFile = Utils.loadMidiFromFile(new java.io.File("theme.mid"));
+MusicSynth installed = Utils.loadMidiFromGameInstall("data/music/theme.mid");
+```
+
+`MidiImporter` can also be used directly with bytes, files, or an existing `javax.sound.midi.Sequence`:
+
+```java
+MusicSynth fromBytes = MidiImporter.load(midiBytes);
+MusicSynth fromSequence = MidiImporter.convert(sequence);
+```
+
+Current MIDI import limitations:
+
+- Only PPQ-timed MIDI sequences are accepted; SMPTE division types are rejected.
+- The earliest tempo meta-event sets the composition tempo. Later tempo changes are not currently reproduced.
+- MIDI percussion channel 10 is ignored.
+- Program changes select approximate oscillator presets rather than General MIDI sample instruments.
+- Sustain pedal, pitch bend, channel pressure, and other MIDI controllers are not currently rendered.
+
+`MusicSynth.build()` renders the entire song into memory. Build once and cache the resulting `Sound` instead of rebuilding it every frame.
 
 ---
 
@@ -735,10 +795,13 @@ PixelGraphics a = Utils.loadTextureFromResources("/assets/a.png");
 TextureAtlas atlas = Utils.loadTextureAtlasFromResources("/assets/tiles.png", 16, 16);
 BitmapFont font = Utils.loadFontFromResources("/assets/font.psf");
 Sound snd = Utils.loadSoundFromResources("/assets/sfx.qoa");
+MusicSynth midi = Utils.loadMidiFromResources("/assets/theme.mid");
 
 // From the game install folder next to the jar / project root
 PixelGraphics b = Utils.loadTextureFromGameInstall("data/b.png");
 Sound music = Utils.loadSoundFromGameInstall("data/music.qoa");
+MusicSynth installedMidi = Utils.loadMidiFromGameInstall("data/theme.mid");
+MusicSynth fileMidi = Utils.loadMidiFromFile(new java.io.File("theme.mid"));
 ```
 
 ### Screenshots
@@ -753,25 +816,71 @@ Utils.saveScreenshot(pg, "screenshots/level1.png");
 
 ### Game Information
 
+`GameInformation` stores process-wide metadata and the two base directories used by the engine. Configure it once near the beginning of `main`, before calling any `Utils.load*FromGameInstall(...)` method.
+
+```java
+GameInformation.set(
+        "BerryPlatformer",          // game name
+        "Acme Games",               // author or studio
+        "MIT",                      // license label
+        null,                        // data folder: choose the OS default
+        null,                        // install folder: choose the code/JAR location
+        "Code: Alice\nArt: Bob"     // credits text
+);
+```
+
+`set(...)` replaces all metadata and folder values, then prints the resulting configuration to standard output. Empty data-folder and install-folder strings behave like `null` and select their defaults. The metadata strings themselves are stored as supplied, so pass meaningful non-null values.
+
+The available values are:
+
+```java
+String name = GameInformation.getName();
+String author = GameInformation.getAuthor();
+String license = GameInformation.getLicense();
+String credits = GameInformation.getCredits();
+java.io.File dataFolder = GameInformation.getGameDataFolder();
+java.io.File installFolder = GameInformation.getGameInstallFolder();
+
+GameInformation.printInformation();
+```
+
+Before `set(...)` is called, the defaults are:
+
+- Name: `BerryNgineDemo`
+- Author: `Unknown Author`
+- License: `All Rights Reserved`
+- Credits: `No credits provided.`
+- Install folder: the parent directory of the running classes or JAR location
+- Data folder: the platform default derived from the default author and game name
+
+When no custom data folder is supplied, `GameInformation` builds the following path:
+
+- Windows: `%APPDATA%\Author\GameName`, falling back to `%USERPROFILE%\AppData\Roaming\Author\GameName` when `APPDATA` is unavailable.
+- Other operating systems: `$XDG_DATA_HOME/Author/GameName`, falling back to `~/.local/share/Author/GameName` when `XDG_DATA_HOME` is unavailable.
+
+You can override either folder with a path string:
+
 ```java
 GameInformation.set(
         "BerryPlatformer",
         "Acme Games",
         "MIT",
-        null,
-        null,
-        "Code: Alice\nArt: Bob"
+        "saves",
+        "game-data",
+        "Acme Games, 2026"
 );
-
-String name = GameInformation.getName();
-String dataFolder = GameInformation.getGameDataFolder();  // OS-aware path
-File installFolder = GameInformation.getGameInstallFolder();
 ```
 
-`GameInformation` automatically builds a platform-appropriate data folder:
+Custom relative paths are resolved relative to the process working directory. `GameInformation` stores paths but does not create directories. Create a data directory before writing saves or settings:
 
-- Windows: `%APPDATA%\Author\GameName`
-- Linux: `$XDG_DATA_HOME` or `~/.local/share/Author/GameName`
+```java
+java.io.File dataFolder = GameInformation.getGameDataFolder();
+if (!dataFolder.exists() && !dataFolder.mkdirs()) {
+    throw new IllegalStateException("Could not create data folder: " + dataFolder);
+}
+```
+
+The install folder is used by `Utils.getFileFromGameInstall(...)`, texture, sound, font, and MIDI game-install loaders. Paths passed to those methods are resolved beneath `GameInformation.getGameInstallFolder()`.
 
 ---
 
@@ -917,3 +1026,6 @@ public void render(GameWindow gw, FramebufferPixelGraphics pg) {
 ---
 
 BerryNgine is intentionally small. It gives you a window, a loop, a pixel buffer, and a set of helpful utilities, then gets out of your way. Build whatever game architecture you like on top of it, from a single-screen arcade prototype to a multi-scene strategy game.
+
+```java
+{{ ... }}
