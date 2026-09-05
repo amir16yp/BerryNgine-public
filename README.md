@@ -930,10 +930,10 @@ public class PlatformerScene implements Scene {
     }
 
     @Override
-    public void fixedUpdate(GameWindow gw, float fixedDt) {
+    public void update(GameWindow gw, float dt) {
         vel.x = Input.getAxisHorizontal() * 120f;
-        vel.y += 500f * fixedDt;  // gravity
-        player.addScaled(vel, fixedDt);
+        vel.y += 500f * dt;  // gravity
+        player.addScaled(vel, dt);
 
         if (player.y > 100) {
             player.y = 100;
@@ -1014,14 +1014,21 @@ public void render(GameWindow gw, FramebufferPixelGraphics pg) {
 ## Tips & Best Practices
 
 - **Cache textures and fonts.** `Utils.loadTexture...` parses image data every time it is called. Load assets once in `onSceneEnter` or a static initializer.
-- **Use `fixedUpdate` for physics.** Movement, collision, and timers should run at a fixed rate so behavior is deterministic regardless of framerate.
+- **Use `update` with `dt` for physics and timers.** Movement and collision should scale with the actual frame delta, not `fixedUpdate`.
 - **Use `update` for animation and camera smoothing.** These can run at the render framerate.
+- **Use helpers, but avoid allocating them per frame.** `Mathf` gives you fast table-based trig, clamps, and lerps. `Color` packs colors into a single `int` with helpers like `fromRGB`, `lerp`, `multiply`, and `withAlpha`. `Vec2` has in-place methods such as `add`, `sub`, `mul`, `addScaled`, and `lerp` that mutate the same instance, so keep reusable vectors for position and velocity math instead of calling `new Vec2(...)` every frame. Convert to `IVec2` only when you need integer pixel coordinates.
 - **Cull with the camera.** `pg.isVisibleWorld(...)` lets you skip drawing off-screen objects.
 - **Keep internal resolution low.** 320x180 or 426x240 scaled up 3-4x looks authentically retro and is very cheap to fill.
 - **Prefer `drawImage` over `setPixel` loops.** The image methods handle clipping and alpha for you.
 - **Audio groups are your friend.** Set up `sfx`, `music`, and `ui` groups early so volume controls are trivial later.
 - **Use `PostFX` sparingly.** They touch every pixel; apply only what you need.
 - **No dependencies means you control the classpath.** Assets can be loaded from resources (inside the jar) or from a directory next to the jar.
+
+---
+
+## Performance
+
+Because BerryNgine is a software renderer, the fastest way to keep a game smooth is to reduce the number of pixels and objects touched every frame. Keep your internal resolution small (for example 320x180 or 426x240) and let the window scale it up, since filling a 1920x1080 buffer in Java is expensive even for simple scenes. Cache every asset you can: load textures, fonts, and `ShapeGenerator` sprites once in `onSceneEnter` or a static initializer, then draw the cached `PixelGraphics` each frame instead of regenerating them. Reuse off-screen buffers instead of `new PixelGraphics(...)` inside the render loop to avoid GC pressure. Cull objects with the camera (`pg.isVisibleWorld(...)`) so you only draw what is on screen, and batch similar draw calls together to avoid repeated setup. Prefer whole-buffer operations like `drawImage` over per-pixel loops, and use `PostFX` only when necessary because they touch every pixel. Finally, profile before optimizing: measure with and without an effect or a group of objects so you are solving the real bottleneck rather than guessing.
 
 ---
 
