@@ -32,15 +32,28 @@ There are no external dependencies: it uses only the standard JDK (`javax.swing`
 
 ## Philosophy
 
-BerryNgine is designed for developers who want the feel of a retro, sprite-based game with the convenience of a modern Java toolchain.
+BerryNgine is designed for developers who want to prototype and ship retro-style games quickly, without wrestling with a big editor or a complex toolchain.
 
-- **Software rendering first.** Every frame is drawn into an `int[]` pixel buffer in ARGB format. There is no hidden GPU state, no shader compilation, and no surprises about how a draw call will be interpreted.
-- **Pixel-perfect scaling.** The window is decoupled from the internal resolution. You render at a small, fixed resolution (e.g., 320x180) and the engine scales it up with nearest-neighbor interpolation, preserving crisp pixel art.
-- **Immediate-mode API.** You draw directly inside `Scene.render(...)`. There are no scene-node hierarchies, no retained UI trees, and no mandatory entity systems. You are free to build those on top if you want them.
-- **Fixed timestep for logic, variable timestep for rendering.** Physics and gameplay update at a configurable fixed rate while the renderer runs as fast as the display loop allows.
-- **Zero dependencies.** If you have a JDK, you can build and run BerryNgine.
+- **Fast to prototype, fun to use.** Open your IDE, write a few lines of Java, and you have a running game. Load a sprite, play a sound, or generate a procedural texture—each is a single method call. There is no project wizard, no asset pipeline, and no editor UI to learn before you see pixels on screen.
+- **No editor required.** Your code *is* the editor. Scenes, input, audio, and rendering are all controlled from plain Java. You can go from an empty file to a playable prototype in minutes, not hours.
+- **Pixel-perfect scaling.** Render at a small, fixed resolution (e.g., 320×180) and the engine scales it up with nearest-neighbor interpolation, preserving crisp pixel art. The window is resizable; the internal resolution stays deterministic.
+- **Immediate-mode API.** Draw directly inside `Scene.render(...)`. There are no scene-node hierarchies, no retained UI trees, and no mandatory entity systems. Build those on top if you want them, but they are never forced on you.
+- **Zero dependencies.** If you have a JDK, you can build and run BerryNgine. Ship as a single `.jar`.
 
-If you have ever wanted to write a game where you can literally `setPixel(x, y, color)`, but still get a resizable window, gamepad-like keyboard input, audio mixing, and a camera system for free, BerryNgine is aimed at you.
+A few things you can do in a single line:
+
+```java
+PixelGraphics sprite = Utils.loadTextureFromResources("/player.png");   // load a sprite
+Sound jump = SoundSynth.jump().build();                                 // generate a jump sound effect
+window.audioMixer.play(AudioMixer.SFX, jump, 0.8f);                    // play it
+pg.drawImageWorld(sprite, player.x, player.y);                         // draw at world coordinates with camera
+PixelGraphics heart = ShapeGenerator.heart(16, 16, Color.RED);         // generate a shape at runtime
+cam.follow(player.x, player.y, dt, 4.0f);                             // smooth camera follow
+pg.renderString(SpriteSheetFont.START2P, "HELLO", 10, 10, Color.WHITE);// pixel-art text with the built-in sprite font
+pg.renderString(BitmapFont.DEFAULT_8X9, "HELLO", 10, 10, Color.WHITE);// or use the built-in bitmap font
+```
+
+No asset importers, no editor panels, no configuration files—just Java.
 
 ---
 
@@ -84,7 +97,6 @@ public class Main {
                 .builder("My Game", 320, 180)   // internal resolution
                 .scale(3)                        // initial window size = 960x540
                 .targetFps(60)
-                .fixedHz(60)
                 .run(new DemoScene());
     }
 
@@ -159,7 +171,6 @@ GameWindow window = GameWindow.builder("Title", 320, 180)
     .resizable(true)                  // window can be resized
     .fullscreen(false)                // or .fullscreen(true)
     .targetFps(60)                    // 0 = uncapped
-    .fixedHz(60)
     .setCaptureMouseByDefault(false)
     .build();
 
@@ -173,17 +184,15 @@ window.run(new MyScene());
 `GameLoop` runs on its own thread. Every frame it does the following:
 
 1. Polls input.
-2. Runs zero or more `fixedUpdate(fixedDt)` calls at the configured fixed rate.
-3. Runs one `update(dt)` call.
-4. Runs one `render(pg)` call.
-5. Presents the buffer to the window.
+2. Runs one `update(dt)` call.
+3. Runs one `render(pg)` call.
+4. Presents the buffer to the window.
 
 Delta time is clamped to a maximum (default 1/15 s) to prevent huge jumps after a debugger pause or OS stutter. Time scale can be changed at runtime:
 
 ```java
 window.gameLoop.setTimeScale(0.5f);  // half speed
 window.gameLoop.setTargetFps(144);
-window.gameLoop.setFixedHz(120);
 ```
 
 You can query timing:
@@ -200,7 +209,6 @@ A `Scene` is the unit of game state. It has lifecycle hooks and three callbacks:
 ```java
 public interface Scene {
     void update(GameWindow gw, float dt);
-    default void fixedUpdate(GameWindow gw, float fixedDt) {}
     void render(GameWindow gw, FramebufferPixelGraphics pg);
     void onSceneEnter(GameWindow gw);
     void onSceneExit(GameWindow gw);
@@ -804,6 +812,34 @@ MusicSynth installedMidi = Utils.loadMidiFromGameInstall("data/theme.mid");
 MusicSynth fileMidi = Utils.loadMidiFromFile(new java.io.File("theme.mid"));
 ```
 
+### Loading from Zip Archives
+
+Every loader has a `*Zip` variant that reads an entry directly from a `.zip` file, so you can ship assets in zip archives instead of loose files. Each method takes the path to the zip and the entry path inside it.
+
+From a zip in the game install folder:
+
+```java
+byte[] raw = Utils.getFileFromGameInstallZip("data/pack.zip", "images/tile.png");
+PixelGraphics tex = Utils.loadTextureFromGameInstallZip("data/pack.zip", "images/tile.png");
+TextureAtlas atlas = Utils.loadTextureAtlasFromGameInstallZip("data/pack.zip", "images/tiles.png", 16, 16);
+Sound sfx = Utils.loadSoundFromGameInstallZip("data/pack.zip", "audio/jump.qoa");
+BitmapFont font = Utils.loadFontFromGameInstallZip("data/pack.zip", "fonts/8x16.psf");
+MusicSynth midi = Utils.loadMidiFromGameInstallZip("data/pack.zip", "music/theme.mid");
+```
+
+From a zip embedded in classpath resources:
+
+```java
+byte[] raw = Utils.getFileFromResourcesZip("/assets/pack.zip", "images/tile.png");
+PixelGraphics tex = Utils.loadTextureFromResourcesZip("/assets/pack.zip", "images/tile.png");
+TextureAtlas atlas = Utils.loadTextureAtlasFromResourcesZip("/assets/pack.zip", "images/tiles.png", 16, 16);
+Sound sfx = Utils.loadSoundFromResourcesZip("/assets/pack.zip", "audio/jump.qoa");
+BitmapFont font = Utils.loadFontFromResourcesZip("/assets/pack.zip", "fonts/8x16.psf");
+MusicSynth midi = Utils.loadMidiFromResourcesZip("/assets/pack.zip", "music/theme.mid");
+```
+
+Entry paths are normalized automatically—a leading `/` is stripped, so `"images/tile.png"` and `"/images/tile.png"` both work. An `IllegalArgumentException` is thrown if the entry is not found inside the zip.
+
 ### Screenshots
 
 ```java
@@ -1014,8 +1050,7 @@ public void render(GameWindow gw, FramebufferPixelGraphics pg) {
 ## Tips & Best Practices
 
 - **Cache textures and fonts.** `Utils.loadTexture...` parses image data every time it is called. Load assets once in `onSceneEnter` or a static initializer.
-- **Use `update` with `dt` for physics and timers.** Movement and collision should scale with the actual frame delta, not `fixedUpdate`.
-- **Use `update` for animation and camera smoothing.** These can run at the render framerate.
+- **Use `update` with `dt` for physics, movement, timers, animation, and camera smoothing.** These should scale with the actual frame delta.
 - **Use helpers, but avoid allocating them per frame.** `Mathf` gives you fast table-based trig, clamps, and lerps. `Color` packs colors into a single `int` with helpers like `fromRGB`, `lerp`, `multiply`, and `withAlpha`. `Vec2` has in-place methods such as `add`, `sub`, `mul`, `addScaled`, and `lerp` that mutate the same instance, so keep reusable vectors for position and velocity math instead of calling `new Vec2(...)` every frame. Convert to `IVec2` only when you need integer pixel coordinates.
 - **Cull with the camera.** `pg.isVisibleWorld(...)` lets you skip drawing off-screen objects.
 - **Keep internal resolution low.** 320x180 or 426x240 scaled up 3-4x looks authentically retro and is very cheap to fill.
