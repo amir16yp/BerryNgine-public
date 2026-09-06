@@ -5,18 +5,11 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public final class Utils {
-
-//    private static PakFile pakFile;
-//
-//    static {
-//        try {
-//            pakFile = new PakFile(Utils.class.getResourceAsStream("/game/assets.pak"));
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     public static byte[] getFileFromResources(String fileName) {
         try (InputStream is = Utils.class.getResourceAsStream(fileName)) {
@@ -35,6 +28,59 @@ public final class Utils {
     public static byte[] getFileFromGameInstall(String filePath) {
         try (InputStream is = Files.newInputStream(new File(GameInformation.getGameInstallFolder(), filePath).toPath())) {
             return toByteArray(is);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static byte[] getFileFromGameInstallZip(String zipPath, String entryPath) {
+        return getFileFromZip(new File(GameInformation.getGameInstallFolder(), zipPath), entryPath);
+    }
+
+    private static byte[] getFileFromZip(File zipFile, String entryPath) {
+        if (entryPath == null) {
+            throw new IllegalArgumentException("entryPath cannot be null");
+        }
+
+        String normalized = entryPath.startsWith("/") ? entryPath.substring(1) : entryPath;
+
+        try (ZipFile zf = new ZipFile(zipFile)) {
+            ZipEntry entry = zf.getEntry(normalized);
+            if (entry == null) {
+                throw new IllegalArgumentException("Entry not found in zip: " + entryPath + " (zip: " + zipFile + ")");
+            }
+
+            try (InputStream is = zf.getInputStream(entry)) {
+                return toByteArray(is);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static byte[] getFileFromResourcesZip(String resourcePath, String entryPath) {
+        InputStream zipStream = Utils.class.getResourceAsStream(resourcePath);
+        if (zipStream == null) {
+            throw new IllegalArgumentException("Resource not found: " + resourcePath);
+        }
+        return getFileFromZip(zipStream, entryPath);
+    }
+
+    private static byte[] getFileFromZip(InputStream zipStream, String entryPath) {
+        if (entryPath == null) {
+            throw new IllegalArgumentException("entryPath cannot be null");
+        }
+
+        String normalized = entryPath.startsWith("/") ? entryPath.substring(1) : entryPath;
+
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(zipStream))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().equals(normalized)) {
+                    return toByteArray(zis);
+                }
+            }
+            throw new IllegalArgumentException("Entry not found in zip: " + entryPath);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -101,6 +147,80 @@ public final class Utils {
     public static TextureAtlas loadTextureAtlasFromResources(String resourcePath, int tileWidth, int tileHeight) {
         PixelGraphics texture = loadTextureFromResources(resourcePath);
         return new TextureAtlas(texture, tileWidth, tileHeight);
+    }
+
+    public static Sound loadSoundFromGameInstallZip(String zipPath, String entryPath) {
+        try {
+            return QOADecoder.decode(getFileFromGameInstallZip(zipPath, entryPath));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static PixelGraphics loadTextureFromGameInstallZip(String zipPath, String entryPath) {
+        try {
+            byte[] data = getFileFromGameInstallZip(zipPath, entryPath);
+
+            if (hasExtension(entryPath, "qoi") || hasExtension(entryPath, "qoif")) {
+                return loadTextureFromQOI(data);
+            }
+
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
+            return textureFromBufferedImage(img);
+
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static TextureAtlas loadTextureAtlasFromGameInstallZip(String zipPath, String entryPath, int tileWidth, int tileHeight) {
+        PixelGraphics texture = loadTextureFromGameInstallZip(zipPath, entryPath);
+        return new TextureAtlas(texture, tileWidth, tileHeight);
+    }
+
+    public static MusicSynth loadMidiFromGameInstallZip(String zipPath, String entryPath) {
+        return MidiImporter.load(getFileFromGameInstallZip(zipPath, entryPath));
+    }
+
+    public static BitmapFont loadFontFromGameInstallZip(String zipPath, String entryPath) {
+        return PSF1Parser.parse(getFileFromGameInstallZip(zipPath, entryPath));
+    }
+
+    public static Sound loadSoundFromResourcesZip(String resourcePath, String entryPath) {
+        try {
+            return QOADecoder.decode(getFileFromResourcesZip(resourcePath, entryPath));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static PixelGraphics loadTextureFromResourcesZip(String resourcePath, String entryPath) {
+        try {
+            byte[] data = getFileFromResourcesZip(resourcePath, entryPath);
+
+            if (hasExtension(entryPath, "qoi") || hasExtension(entryPath, "qoif")) {
+                return loadTextureFromQOI(data);
+            }
+
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
+            return textureFromBufferedImage(img);
+
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static TextureAtlas loadTextureAtlasFromResourcesZip(String resourcePath, String entryPath, int tileWidth, int tileHeight) {
+        PixelGraphics texture = loadTextureFromResourcesZip(resourcePath, entryPath);
+        return new TextureAtlas(texture, tileWidth, tileHeight);
+    }
+
+    public static MusicSynth loadMidiFromResourcesZip(String resourcePath, String entryPath) {
+        return MidiImporter.load(getFileFromResourcesZip(resourcePath, entryPath));
+    }
+
+    public static BitmapFont loadFontFromResourcesZip(String resourcePath, String entryPath) {
+        return PSF1Parser.parse(getFileFromResourcesZip(resourcePath, entryPath));
     }
 
     private static PixelGraphics loadTextureFromQOI(byte[] qoiFileData) {
