@@ -29,6 +29,19 @@ public final class SpriteSheetFont {
         return atlas;
     }
 
+    public SpriteSheetFont scale(int scaleFactor) {
+        if (scaleFactor <= 1) return this;
+        int newW = glyphW * scaleFactor;
+        int newH = glyphH * scaleFactor;
+        int count = atlas.getTextureCount();
+        PixelGraphics combined = new PixelGraphics(newW * count, newH);
+        for (int i = 0; i < count; i++) {
+            PixelGraphics glyph = atlas.getTexture(i).scale(scaleFactor);
+            combined.drawImage(glyph, i * newW, 0);
+        }
+        return new SpriteSheetFont(characters, new TextureAtlas(combined, newW, newH));
+    }
+
     public PixelGraphics getStringImage(String string, int color) {
         PixelGraphics image = new PixelGraphics(Math.max(1, string.length() * glyphW), glyphH);
         drawString(image, string, 0, 0, color);
@@ -52,7 +65,7 @@ public final class SpriteSheetFont {
             cursorX += glyphW;
         }
     }
-
-    public static SpriteSheetFont START2P = new SpriteSheetFont(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", Utils.loadTextureAtlasFromResources("/berryngine/default_assets/fonts/start2p_16x16.qoi", 16, 16));
-    public static SpriteSheetFont ABLE5 = new SpriteSheetFont(Utils.loadTextFromResources("/berryngine/default_assets/fonts/Able5_16x16_chars.txt"), Utils.loadTextureAtlasFromResources("/berryngine/default_assets/fonts/Able5_16x16_atlas.qoi", 16, 16));
+    private static String DEFAULT_FONT_CHARS = " !\\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    public static SpriteSheetFont START2P = new SpriteSheetFont(DEFAULT_FONT_CHARS, Utils.loadTextureAtlasFromResources("/berryngine/default_assets/fonts/start2p_8x8.qoi", 8, 8));
+    public static SpriteSheetFont ABLE4 = new SpriteSheetFont(DEFAULT_FONT_CHARS, Utils.loadTextureAtlasFromResources("/berryngine/default_assets/fonts/able4_6x6.qoi", 6, 6));
 }

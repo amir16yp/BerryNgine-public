@@ -96,6 +96,73 @@ public final class BitmapFont {
         }
     }
 
+    public PixelGraphics getStringImage(String text, int color) {
+        int[] glyphIndices = getChars(text);
+        PixelGraphics image = new PixelGraphics(Math.max(1, glyphIndices.length * glyphWidth), glyphHeight);
+        int cursorX = 0;
+        for (int i = 0; i < glyphIndices.length; i++) {
+            byte[] glyph = getGlyph(glyphIndices[i]);
+            for (int row = 0; row < glyphHeight; row++) {
+                byte bits = glyph[row];
+                for (int col = 0; col < glyphWidth; col++) {
+                    if ((bits & (1 << (7 - col))) != 0) {
+                        image.setPixel(cursorX + col, row, color);
+                    }
+                }
+            }
+            cursorX += glyphWidth;
+        }
+        return image;
+    }
+
+    public SpriteSheetFont scale(int scaleFactor) {
+        if (scaleFactor <= 1) {
+            return toSpriteSheetFont();
+        }
+        int newW = glyphWidth * scaleFactor;
+        int newH = glyphHeight * scaleFactor;
+        int white = 0xFFFFFFFF;
+        PixelGraphics combined = new PixelGraphics(newW * glyphCount, newH);
+        for (int g = 0; g < glyphCount; g++) {
+            PixelGraphics glyph = new PixelGraphics(glyphWidth, glyphHeight);
+            for (int row = 0; row < glyphHeight; row++) {
+                byte bits = glyphs[g][row];
+                for (int col = 0; col < glyphWidth; col++) {
+                    if ((bits & (1 << (7 - col))) != 0) {
+                        glyph.setPixel(col, row, white);
+                    }
+                }
+            }
+            PixelGraphics scaled = glyph.scale(scaleFactor);
+            combined.drawImage(scaled, g * newW, 0);
+        }
+        StringBuilder chars = new StringBuilder(glyphCount);
+        for (int i = 0; i < glyphCount && i < 256; i++) {
+            chars.append((char) i);
+        }
+        return new SpriteSheetFont(chars.toString(), new TextureAtlas(combined, newW, newH));
+    }
+
+    public SpriteSheetFont toSpriteSheetFont() {
+        int white = 0xFFFFFFFF;
+        PixelGraphics combined = new PixelGraphics(glyphWidth * glyphCount, glyphHeight);
+        for (int g = 0; g < glyphCount; g++) {
+            for (int row = 0; row < glyphHeight; row++) {
+                byte bits = glyphs[g][row];
+                for (int col = 0; col < glyphWidth; col++) {
+                    if ((bits & (1 << (7 - col))) != 0) {
+                        combined.setPixel(g * glyphWidth + col, row, white);
+                    }
+                }
+            }
+        }
+        StringBuilder chars = new StringBuilder(glyphCount);
+        for (int i = 0; i < glyphCount && i < 256; i++) {
+            chars.append((char) i);
+        }
+        return new SpriteSheetFont(chars.toString(), new TextureAtlas(combined, glyphWidth, glyphHeight));
+    }
+
     public PixelGraphics createPreview() {
         int cols = 16;
         if (glyphCount > 0 && glyphCount < cols) {
@@ -132,18 +199,17 @@ public final class BitmapFont {
 
     public static final BitmapFont DEFAULT_8X9 = Utils.loadFontFromResources("/berryngine/default_assets/fonts/default8x9.psf");
 
+
     /*
     public static void main(String[] args) {
         // check that it works
         Utils.saveScreenshot(BitmapFont.DEFAULT_8X9.createPreview(), "defaultpsffont.png");
 
         // check spritesheetfont too
-        String text = " bli bli bli בלה בלה בלה";
-
-        PixelGraphics pg = new PixelGraphics(16 * text.length(), 16); // around 300 characters
-        pg.renderString(SpriteSheetFont.ABLE5,  text, 0, 0, Color.RED);
+        String text = "The quick brown fox jumps over the lazy dog.";
+        PixelGraphics pg = new PixelGraphics(6 * text.length(), 6);
+        pg.renderString(SpriteSheetFont.ABLE4,text, 0, 0, Color.RED);
         Utils.saveScreenshot(pg, "defaultspritesheetfont.png");
     }
-
      */
 }

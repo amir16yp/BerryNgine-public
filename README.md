@@ -147,7 +147,7 @@ javac -d out $(find src -name "*.java")
 java -cp out game.Main
 ```
 
-The engine ships with one embedded asset, a 16x16 pixel font atlas at `berryngine`, used by `SpriteSheetFont.START2P`.
+The engine ships with three embedded font assets: two sprite-sheet fonts (`SpriteSheetFont.START2P` at 8×8 and `SpriteSheetFont.ABLE4` at 6×6) and one PSF1 bitmap font (`BitmapFont.DEFAULT_8X9` at 8×9).
 
 ---
 
@@ -387,14 +387,23 @@ BerryNgine supports two kinds of fonts:
 
 ### Bitmap Fonts (PSF1)
 
-PC Screen Font v1 files can be loaded with `Utils.loadFontFromResources(...)` or `Utils.loadFontFromGameInstall(...)`.
+PC Screen Font v1 files can be loaded with `Utils.loadFontFromResources(...)` or `Utils.loadFontFromGameInstall(...)`. A default font is built in:
 
 ```java
-BitmapFont font = Utils.loadFontFromResources("/berryngine/default_assets/fonts/8x16.psf");
-pg.renderString(font, "Hello",10,10,Color.WHITE);
-pg.renderString(font, "With BG",10,30,Color.WHITE, Color.BLACK);
-pg.renderString(font, "Big",10,50,Color.WHITE, Color.BLACK, 2); // scaled 2x
+pg.renderString(BitmapFont.DEFAULT_8X9, "Hello", 10, 10, Color.WHITE);
+pg.renderString(BitmapFont.DEFAULT_8X9, "With BG", 10, 30, Color.WHITE, Color.BLACK);
+pg.renderString(BitmapFont.DEFAULT_8X9, "Big", 10, 50, Color.WHITE, Color.BLACK, 2); // scaled 2x
 ```
+
+You can render text into a standalone image, scale a font, or convert it to a `SpriteSheetFont`:
+
+```java
+PixelGraphics label = BitmapFont.DEFAULT_8X9.getStringImage("HELLO", Color.WHITE);
+SpriteSheetFont big = BitmapFont.DEFAULT_8X9.scale(3);       // 3x scaled, returns SpriteSheetFont
+SpriteSheetFont ssf = BitmapFont.DEFAULT_8X9.toSpriteSheetFont(); // 1x conversion
+```
+
+`scale(int)` returns a `SpriteSheetFont` because scaled glyph widths can exceed the PSF1 one-byte-per-row limit.
 
 ### Sprite-Sheet Fonts
 
@@ -405,13 +414,21 @@ TextureAtlas atlas = Utils.loadTextureAtlasFromResources("/assets/font.png", 8, 
 SpriteSheetFont font = new SpriteSheetFont(
         " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", atlas);
 pg.renderString(font, "SCORE 001", 10, 10, Color.WHITE);
-pg.renderString(font, "SCORE 002", 10, 20, Color.WHITE, 2); // scaled
+pg.renderString(font, "SCORE 002", 10, 20, Color.WHITE, 2); // scaled via renderString
 ```
 
-A default font is built in:
+Two default sprite-sheet fonts are built in:
 
 ```java
-pg.renderString(SpriteSheetFont.START2P, "PRESS START", 40, 80, Color.WHITE);
+pg.renderString(SpriteSheetFont.START2P, "PRESS START", 40, 80, Color.WHITE);  // 8x8
+pg.renderString(SpriteSheetFont.ABLE4, "Hello world", 10, 10, Color.WHITE);    // 6x6
+```
+
+Both font types support `scale(int)` and `getStringImage(String, int)`:
+
+```java
+SpriteSheetFont bigStart2P = SpriteSheetFont.START2P.scale(2);             // 16x16 glyphs
+PixelGraphics title = SpriteSheetFont.ABLE4.getStringImage("TITLE", Color.GOLD); // as a texture
 ```
 
 ---
