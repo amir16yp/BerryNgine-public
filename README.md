@@ -804,12 +804,17 @@ TextureAtlas atlas = Utils.loadTextureAtlasFromResources("/assets/tiles.png", 16
 BitmapFont font = Utils.loadFontFromResources("/assets/font.psf");
 Sound snd = Utils.loadSoundFromResources("/assets/sfx.qoa");
 MusicSynth midi = Utils.loadMidiFromResources("/assets/theme.mid");
+String dialogue = Utils.loadTextFromResources("/assets/dialogue.txt");
 
 // From the game install folder next to the jar / project root
 PixelGraphics b = Utils.loadTextureFromGameInstall("data/b.png");
 Sound music = Utils.loadSoundFromGameInstall("data/music.qoa");
 MusicSynth installedMidi = Utils.loadMidiFromGameInstall("data/theme.mid");
+String config = Utils.loadTextFromGameInstall("data/config.txt");
+
+// From an arbitrary file
 MusicSynth fileMidi = Utils.loadMidiFromFile(new java.io.File("theme.mid"));
+String notes = Utils.loadTextFromFile(new java.io.File("notes.txt"));
 ```
 
 ### Loading from Zip Archives
@@ -825,6 +830,7 @@ TextureAtlas atlas = Utils.loadTextureAtlasFromGameInstallZip("data/pack.zip", "
 Sound sfx = Utils.loadSoundFromGameInstallZip("data/pack.zip", "audio/jump.qoa");
 BitmapFont font = Utils.loadFontFromGameInstallZip("data/pack.zip", "fonts/8x16.psf");
 MusicSynth midi = Utils.loadMidiFromGameInstallZip("data/pack.zip", "music/theme.mid");
+String txt = Utils.loadTextFromGameInstallZip("data/pack.zip", "text/dialogue.txt");
 ```
 
 From a zip embedded in classpath resources:
@@ -836,6 +842,7 @@ TextureAtlas atlas = Utils.loadTextureAtlasFromResourcesZip("/assets/pack.zip", 
 Sound sfx = Utils.loadSoundFromResourcesZip("/assets/pack.zip", "audio/jump.qoa");
 BitmapFont font = Utils.loadFontFromResourcesZip("/assets/pack.zip", "fonts/8x16.psf");
 MusicSynth midi = Utils.loadMidiFromResourcesZip("/assets/pack.zip", "music/theme.mid");
+String txt = Utils.loadTextFromResourcesZip("/assets/pack.zip", "text/dialogue.txt");
 ```
 
 Entry paths are normalized automatically—a leading `/` is stripped, so `"images/tile.png"` and `"/images/tile.png"` both work. An `IllegalArgumentException` is thrown if the entry is not found inside the zip.

@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -267,6 +268,30 @@ public final class Utils {
 
     public static BitmapFont loadFontFromResources(String resourcePath) {
         return PSF1Parser.parse(getFileFromResources(resourcePath));
+    }
+
+    public static String loadTextFromResources(String resourcePath) {
+        return new String(getFileFromResources(resourcePath), StandardCharsets.UTF_8);
+    }
+
+    public static String loadTextFromGameInstall(String relativePath) {
+        return new String(getFileFromGameInstall(relativePath), StandardCharsets.UTF_8);
+    }
+
+    public static String loadTextFromFile(File file) {
+        try {
+            return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static String loadTextFromGameInstallZip(String zipPath, String entryPath) {
+        return new String(getFileFromGameInstallZip(zipPath, entryPath), StandardCharsets.UTF_8);
+    }
+
+    public static String loadTextFromResourcesZip(String resourcePath, String entryPath) {
+        return new String(getFileFromResourcesZip(resourcePath, entryPath), StandardCharsets.UTF_8);
     }
 
     public static void saveScreenshot(PixelGraphics g, String filePath) {

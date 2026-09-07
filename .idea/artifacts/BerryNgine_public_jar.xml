@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="BerryNgine-public:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/BerryNgine_public_jar</output-path>
+    <root id="archive" name="BerryNgine.jar">
+      <element id="module-output" name="BerryNgine-public" />
+    </root>
+  </artifact>
+</component>

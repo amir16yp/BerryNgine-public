@@ -138,11 +138,12 @@ public final class BitmapFont {
         Utils.saveScreenshot(BitmapFont.DEFAULT_8X9.createPreview(), "defaultpsffont.png");
 
         // check spritesheetfont too
-        String text = "Testing bla bla bla bla bla";
+        String text = " bli bli bli בלה בלה בלה";
 
         PixelGraphics pg = new PixelGraphics(16 * text.length(), 16); // around 300 characters
-        pg.renderString(SpriteSheetFont.START2P,  text, 0, 0, Color.RED);
+        pg.renderString(SpriteSheetFont.ABLE5,  text, 0, 0, Color.RED);
         Utils.saveScreenshot(pg, "defaultspritesheetfont.png");
     }
+
      */
 }
