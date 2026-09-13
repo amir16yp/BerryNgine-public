@@ -38,7 +38,7 @@ public final class GameInformation {
                 ? buildDefaultGameDataFolder(author, name)
                 : new File(dataFolder);
 
-        printInformation();
+        //printInformation();
     }
 
     private static File getJarDirectory() {

@@ -793,4 +793,1467 @@ public final class ShapeGenerator {
             }
         }
     }
+
+    // ============================================================
+// Additional Shapes
+// ============================================================
+
+    public static PixelGraphics square(int size, int color) {
+        return rectangle(size, size, color);
+    }
+
+    public static PixelGraphics roundedSquare(int size, int radius, int color) {
+        return roundedRectangle(size, size, radius, color);
+    }
+
+    public static PixelGraphics trapezoid(
+            int width,
+            int height,
+            int topWidth,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        topWidth = Math.max(1, Math.min(width, topWidth));
+
+        int left = (width - topWidth) / 2;
+        int right = left + topWidth - 1;
+
+        int[] x = {
+                left,
+                right,
+                width - 1,
+                0
+        };
+
+        int[] y = {
+                0,
+                0,
+                height - 1,
+                height - 1
+        };
+
+        fillPolygon(g, x, y, 4, color);
+        return g;
+    }
+
+    public static PixelGraphics parallelogram(
+            int width,
+            int height,
+            int slant,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int[] x = {
+                slant,
+                width - 1,
+                width - 1 - slant,
+                0
+        };
+
+        int[] y = {
+                0,
+                0,
+                height - 1,
+                height - 1
+        };
+
+        fillPolygon(g, x, y, 4, color);
+        return g;
+    }
+
+    public static PixelGraphics hexagon(int width, int height, int color) {
+        return regularPolygon(width, height, 6, 0.0f, color);
+    }
+
+    public static PixelGraphics octagon(int width, int height, int color) {
+        return regularPolygon(width, height, 8, 0.0f, color);
+    }
+
+    public static PixelGraphics regularPolygon(
+            int width,
+            int height,
+            int sides,
+            float rotation,
+            int color
+    ) {
+        if (sides < 3) {
+            sides = 3;
+        }
+
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        float cx = (width - 1) * 0.5f;
+        float cy = (height - 1) * 0.5f;
+        float radius = Math.min(width, height) * 0.5f;
+
+        int[] x = new int[sides];
+        int[] y = new int[sides];
+
+        for (int i = 0; i < sides; i++) {
+            float angle =
+                    rotation
+                            + i * Mathf.TWO_PI / sides
+                            - Mathf.PI * 0.5f;
+
+            x[i] = (int) (cx + Mathf.cos(angle) * radius);
+            y[i] = (int) (cy + Mathf.sin(angle) * radius);
+        }
+
+        fillPolygon(g, x, y, sides, color);
+        return g;
+    }
+
+    public static PixelGraphics semicircle(
+            int width,
+            int height,
+            float startAngle,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+        int radius = Math.min(width, height) / 2;
+
+        fillArc(
+                g,
+                cx,
+                cy,
+                radius,
+                startAngle,
+                180.0f,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics quarterCircle(
+            int radius,
+            int quadrant,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(
+                radius * 2 + 1,
+                radius * 2 + 1
+        );
+
+        int cx = radius;
+        int cy = radius;
+
+        float startAngle = quadrant * 90.0f;
+
+        fillArc(
+                g,
+                cx,
+                cy,
+                radius,
+                startAngle,
+                90.0f,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics ellipseRing(
+            int width,
+            int height,
+            int thickness,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        float cx = (width - 1) * 0.5f;
+        float cy = (height - 1) * 0.5f;
+
+        float rx = width * 0.5f;
+        float ry = height * 0.5f;
+
+        float innerRx = Math.max(0.0f, rx - thickness);
+        float innerRy = Math.max(0.0f, ry - thickness);
+
+        float outerRx2 = rx * rx;
+        float outerRy2 = ry * ry;
+
+        float innerRx2 = innerRx * innerRx;
+        float innerRy2 = innerRy * innerRy;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                float dx = x - cx;
+                float dy = y - cy;
+
+                float outer =
+                        (dx * dx) / outerRx2 +
+                                (dy * dy) / outerRy2;
+
+                float inner =
+                        innerRx > 0.0f && innerRy > 0.0f
+                                ? (dx * dx) / innerRx2 +
+                                (dy * dy) / innerRy2
+                                : 0.0f;
+
+                if (outer <= 1.0f && inner >= 1.0f) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+
+        return g;
+    }
+
+
+// ============================================================
+// UI / Interface Shapes
+// ============================================================
+
+    public static PixelGraphics pill(
+            int width,
+            int height,
+            int color
+    ) {
+        return roundedRectangle(
+                width,
+                height,
+                Math.min(width, height) / 2,
+                color
+        );
+    }
+
+    public static PixelGraphics speechBubble(
+            int width,
+            int height,
+            int tailWidth,
+            int tailHeight,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int bodyHeight = Math.max(1, height - tailHeight);
+        int radius = Math.min(width, bodyHeight) / 5;
+
+        fillRoundRect(
+                g,
+                0,
+                0,
+                width,
+                bodyHeight,
+                radius,
+                color
+        );
+
+        int tailX = width / 4;
+
+        int[] x = {
+                tailX,
+                tailX + tailWidth,
+                tailX
+        };
+
+        int[] y = {
+                bodyHeight - 1,
+                bodyHeight - 1,
+                height - 1
+        };
+
+        fillPolygon(g, x, y, 3, color);
+
+        return g;
+    }
+
+    public static PixelGraphics thoughtBubble(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int mainRadius = Math.min(width, height) / 3;
+
+        int cx = width / 2;
+        int cy = height / 3;
+
+        int r2 = mainRadius * mainRadius;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                int dx = x - cx;
+                int dy = y - cy;
+
+                if (dx * dx + dy * dy <= r2) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+
+        int small1 = Math.max(1, mainRadius / 3);
+        int small2 = Math.max(1, mainRadius / 5);
+
+        drawFilledCircleAt(
+                g,
+                width / 3,
+                height * 2 / 3,
+                small1,
+                color
+        );
+
+        drawFilledCircleAt(
+                g,
+                width / 5,
+                height * 4 / 5,
+                small2,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics badge(
+            int width,
+            int height,
+            int color
+    ) {
+        return regularPolygon(
+                width,
+                height,
+                8,
+                Mathf.PI / 8.0f,
+                color
+        );
+    }
+
+    public static PixelGraphics pointer(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int[] x = {
+                0,
+                0,
+                width / 2,
+                width * 3 / 4,
+                width / 2,
+                width
+        };
+
+        int[] y = {
+                0,
+                height,
+                height * 3 / 4,
+                height,
+                height / 2,
+                height / 2
+        };
+
+        fillPolygon(g, x, y, x.length, color);
+        return g;
+    }
+
+    public static PixelGraphics mouseCursor(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int[] x = {
+                0,
+                0,
+                width / 2,
+                width / 3,
+                width / 2
+        };
+
+        int[] y = {
+                0,
+                height,
+                height * 3 / 4,
+                height / 2,
+                height / 2
+        };
+
+        fillPolygon(g, x, y, x.length, color);
+        return g;
+    }
+
+    public static PixelGraphics playButton(
+            int width,
+            int height,
+            int color
+    ) {
+        return triangle(
+                0,
+                0,
+                width - 1,
+                height / 2,
+                0,
+                height - 1,
+                color
+        );
+    }
+
+    public static PixelGraphics pauseButton(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int barWidth = Math.max(1, width / 3);
+
+        g.fillRect(
+                0,
+                0,
+                barWidth,
+                height,
+                color
+        );
+
+        g.fillRect(
+                width - barWidth,
+                0,
+                barWidth,
+                height,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics stopButton(
+            int width,
+            int height,
+            int color
+    ) {
+        return rectangle(width, height, color);
+    }
+
+    public static PixelGraphics closeButton(
+            int width,
+            int height,
+            int color,
+            int thickness
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        g.drawImage(
+                line(
+                        0,
+                        0,
+                        width - 1,
+                        height - 1,
+                        color,
+                        thickness
+                ),
+                0,
+                0
+        );
+
+        g.drawImage(
+                line(
+                        width - 1,
+                        0,
+                        0,
+                        height - 1,
+                        color,
+                        thickness
+                ),
+                0,
+                0
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics plusButton(
+            int width,
+            int height,
+            int color,
+            int thickness
+    ) {
+        return cross(width, height, color, thickness);
+    }
+
+    public static PixelGraphics minusButton(
+            int width,
+            int height,
+            int color,
+            int thickness
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int y = height / 2 - thickness / 2;
+
+        g.fillRect(
+                0,
+                y,
+                width,
+                thickness,
+                color
+        );
+
+        return g;
+    }
+
+
+// ============================================================
+// Decorative Shapes
+// ============================================================
+
+    public static PixelGraphics sun(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int radius = Math.min(width, height) / 4;
+
+        drawFilledCircleAt(g, cx, cy, radius, color);
+
+        int rays = 8;
+        int rayLength = radius / 2;
+
+        for (int i = 0; i < rays; i++) {
+            float angle = i * Mathf.TWO_PI / rays;
+
+            int x1 = (int) (cx + Mathf.cos(angle) * (radius + 2));
+            int y1 = (int) (cy + Mathf.sin(angle) * (radius + 2));
+
+            int x2 = (int) (cx + Mathf.cos(angle) * (radius + rayLength));
+            int y2 = (int) (cy + Mathf.sin(angle) * (radius + rayLength));
+
+            g.drawLine(x1, y1, x2, y2, color);
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics sunburst(
+            int width,
+            int height,
+            int rays,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        if (rays < 2) rays = 2;
+
+        float cx = (width - 1) * 0.5f;
+        float cy = (height - 1) * 0.5f;
+
+        float radius = Math.min(width, height) * 0.5f;
+
+        for (int i = 0; i < rays; i++) {
+            float a1 = i * Mathf.TWO_PI / rays;
+            float a2 = (i + 0.5f) * Mathf.TWO_PI / rays;
+
+            int[] x = {
+                    (int) cx,
+                    (int) (cx + Mathf.cos(a1) * radius),
+                    (int) (cx + Mathf.cos(a2) * radius)
+            };
+
+            int[] y = {
+                    (int) cy,
+                    (int) (cy + Mathf.sin(a1) * radius),
+                    (int) (cy + Mathf.sin(a2) * radius)
+            };
+
+            fillPolygon(g, x, y, 3, color);
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics moon(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int radius = Math.min(width, height) / 2;
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int r2 = radius * radius;
+
+        int offset = radius / 3;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                int dx = x - cx;
+                int dy = y - cy;
+
+                if (dx * dx + dy * dy <= r2) {
+                    int cutDx = x - cx + offset;
+                    int cutDy = y - cy;
+
+                    if (cutDx * cutDx + cutDy * cutDy > r2) {
+                        g.setPixel(x, y, color);
+                    }
+                }
+            }
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics cloud(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int baseY = height * 2 / 3;
+
+        g.fillRect(
+                width / 6,
+                baseY,
+                width * 2 / 3,
+                height / 3,
+                color
+        );
+
+        drawFilledCircleAt(
+                g,
+                width / 3,
+                baseY,
+                height / 3,
+                color
+        );
+
+        drawFilledCircleAt(
+                g,
+                width / 2,
+                baseY - height / 6,
+                height / 3,
+                color
+        );
+
+        drawFilledCircleAt(
+                g,
+                width * 2 / 3,
+                baseY,
+                height / 3,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics gear(
+            int width,
+            int height,
+            int teeth,
+            float innerRadius,
+            float outerRadius,
+            int color
+    ) {
+        if (teeth < 3) teeth = 3;
+
+        innerRadius = Math.max(0.0f, Math.min(1.0f, innerRadius));
+        outerRadius = Math.max(innerRadius, Math.min(1.0f, outerRadius));
+
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        float cx = (width - 1) * 0.5f;
+        float cy = (height - 1) * 0.5f;
+        float radius = Math.min(width, height) * 0.5f;
+
+        int count = teeth * 4;
+
+        int[] x = new int[count];
+        int[] y = new int[count];
+
+        for (int i = 0; i < count; i++) {
+            float angle =
+                    i * Mathf.TWO_PI / count -
+                            Mathf.PI * 0.5f;
+
+            int section = i % 4;
+
+            float r;
+
+            if (section == 0 || section == 3) {
+                r = outerRadius;
+            } else {
+                r = innerRadius;
+            }
+
+            r *= radius;
+
+            x[i] = (int) (cx + Mathf.cos(angle) * r);
+            y[i] = (int) (cy + Mathf.sin(angle) * r);
+        }
+
+        fillPolygon(g, x, y, count, color);
+
+        return g;
+    }
+
+    public static PixelGraphics diamondRing(
+            int width,
+            int height,
+            int thickness,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int outerX = width / 2;
+        int outerY = height / 2;
+
+        int innerX = Math.max(0, outerX - thickness);
+        int innerY = Math.max(0, outerY - thickness);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                float dx = Math.abs(x - cx);
+                float dy = Math.abs(y - cy);
+
+                float outer =
+                        dx / (float) Math.max(1, outerX) +
+                                dy / (float) Math.max(1, outerY);
+
+                float inner =
+                        dx / (float) Math.max(1, innerX) +
+                                dy / (float) Math.max(1, innerY);
+
+                if (outer <= 1.0f && inner >= 1.0f) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics spikes(
+            int width,
+            int height,
+            int spikes,
+            float innerRadius,
+            int color
+    ) {
+        if (spikes < 2) spikes = 2;
+
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        float cx = (width - 1) * 0.5f;
+        float cy = (height - 1) * 0.5f;
+
+        float outer = Math.min(width, height) * 0.5f;
+        float inner = outer * innerRadius;
+
+        int count = spikes * 2;
+
+        int[] x = new int[count];
+        int[] y = new int[count];
+
+        for (int i = 0; i < count; i++) {
+            float angle =
+                    i * Mathf.TWO_PI / count -
+                            Mathf.PI * 0.5f;
+
+            float radius = (i & 1) == 0 ? outer : inner;
+
+            x[i] = (int) (cx + Mathf.cos(angle) * radius);
+            y[i] = (int) (cy + Mathf.sin(angle) * radius);
+        }
+
+        fillPolygon(g, x, y, count, color);
+
+        return g;
+    }
+
+    public static PixelGraphics burst(
+            int width,
+            int height,
+            int points,
+            float innerRadius,
+            int color
+    ) {
+        return spikes(
+                width,
+                height,
+                points,
+                innerRadius,
+                color
+        );
+    }
+
+    public static PixelGraphics flower(
+            int width,
+            int height,
+            int petals,
+            float petalRadius,
+            int color
+    ) {
+        if (petals < 2) petals = 2;
+
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int orbit = Math.min(width, height) / 4;
+        int radius = Math.max(1, (int) (orbit * petalRadius));
+
+        for (int i = 0; i < petals; i++) {
+            float angle = i * Mathf.TWO_PI / petals;
+
+            int px = (int) (cx + Mathf.cos(angle) * orbit);
+            int py = (int) (cy + Mathf.sin(angle) * orbit);
+
+            drawFilledCircleAt(
+                    g,
+                    px,
+                    py,
+                    radius,
+                    color
+            );
+        }
+
+        drawFilledCircleAt(
+                g,
+                cx,
+                cy,
+                Math.max(1, radius / 2),
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics clover(
+            int width,
+            int height,
+            int color
+    ) {
+        return flower(
+                width,
+                height,
+                4,
+                0.8f,
+                color
+        );
+    }
+
+
+// ============================================================
+// Game / HUD Shapes
+// ============================================================
+
+    public static PixelGraphics crosshair(
+            int width,
+            int height,
+            int size,
+            int thickness,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int half = size / 2;
+
+        g.fillRect(
+                cx - half,
+                cy - thickness / 2,
+                size,
+                thickness,
+                color
+        );
+
+        g.fillRect(
+                cx - thickness / 2,
+                cy - half,
+                thickness,
+                size,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics reticle(
+            int width,
+            int height,
+            int radius,
+            int thickness,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int r2 = radius * radius;
+        int inner = Math.max(0, radius - thickness);
+        int inner2 = inner * inner;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                int dx = x - cx;
+                int dy = y - cy;
+                int d2 = dx * dx + dy * dy;
+
+                if (d2 <= r2 && d2 >= inner2) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics shield(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int[] x = {
+                width / 2,
+                width - 1,
+                width - 1,
+                width * 3 / 4,
+                width / 2,
+                width / 4,
+                0,
+                0
+        };
+
+        int[] y = {
+                0,
+                height / 5,
+                height / 2,
+                height * 3 / 4,
+                height - 1,
+                height * 3 / 4,
+                height / 2,
+                height / 5
+        };
+
+        fillPolygon(g, x, y, x.length, color);
+
+        return g;
+    }
+
+    public static PixelGraphics texturedFlag(
+            int width,
+            int height,
+            PixelGraphics texture,
+            float waveAmplitude,
+            float waveFrequency
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int textureWidth = texture.width;
+        int textureHeight = texture.height;
+
+        for (int x = 0; x < width; x++) {
+            float t = (float) x / Math.max(1, width - 1);
+
+            int offset = (int) (
+                    Math.sin(t * waveFrequency * Math.PI * 2.0)
+                            * waveAmplitude
+            );
+
+            int textureX = (int) (t * (textureWidth - 1));
+
+            for (int y = 0; y < height; y++) {
+                int textureY = y * textureHeight / height;
+
+                int color = texture.getPixel(textureX, textureY);
+
+                int destY = y + offset;
+
+                if (destY >= 0 && destY < height) {
+                    g.setPixel(x, destY, color);
+                }
+            }
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics flag(
+            int width,
+            int height,
+            int color,
+            float waveAmplitude,
+            float waveFrequency
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        for (int x = 0; x < width; x++) {
+            float t = (float) x / Math.max(1, width - 1);
+
+            int offset = (int) (
+                    Math.sin(t * waveFrequency * Math.PI * 2.0)
+                            * waveAmplitude
+            );
+
+            g.fillRect(
+                    x,
+                    offset,
+                    1,
+                    height,
+                    color
+            );
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics flag(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int poleWidth = Math.max(1, width / 12);
+
+        g.fillRect(
+                0,
+                0,
+                poleWidth,
+                height,
+                color
+        );
+
+        int[] x = {
+                poleWidth,
+                width - 1,
+                poleWidth
+        };
+
+        int[] y = {
+                0,
+                height / 4,
+                height / 2
+        };
+
+        fillPolygon(g, x, y, 3, color);
+
+        return g;
+    }
+
+    public static PixelGraphics coin(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        float cx = width * 0.5f;
+        float cy = height * 0.5f;
+        float rx = width * 0.5f;
+        float ry = height * 0.5f;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                float dx = (x - cx) / rx;
+                float dy = (y - cy) / ry;
+
+                if (dx * dx + dy * dy <= 1.0f) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics bullet(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int radius = Math.min(width, height) / 3;
+
+        g.fillRect(
+                0,
+                height / 3,
+                width - radius,
+                height / 3,
+                color
+        );
+
+        drawFilledCircleAt(
+                g,
+                width - radius,
+                height / 2,
+                radius,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics key(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int radius = Math.min(width, height) / 4;
+        int cy = height / 2;
+
+        drawRingAt(
+                g,
+                width / 4,
+                cy,
+                radius,
+                Math.max(1, radius / 3),
+                color
+        );
+
+        int shaftX = width / 4 + radius;
+
+        g.fillRect(
+                shaftX,
+                cy - Math.max(1, radius / 4),
+                width - shaftX,
+                Math.max(1, radius / 2),
+                color
+        );
+
+        g.fillRect(
+                width * 2 / 3,
+                cy,
+                Math.max(1, width / 8),
+                height / 4,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics explosion(
+            int width,
+            int height,
+            int spikes,
+            int color
+    ) {
+        return spikes(
+                width,
+                height,
+                spikes,
+                0.35f,
+                color
+        );
+    }
+
+
+// ============================================================
+// HUD / Technical
+// ============================================================
+
+    public static PixelGraphics progressBar(
+            int width,
+            int height,
+            float progress,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        progress = Math.max(0.0f, Math.min(1.0f, progress));
+
+        int filled = (int) (width * progress);
+
+        if (filled > 0) {
+            g.fillRect(
+                    0,
+                    0,
+                    filled,
+                    height,
+                    color
+            );
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics meter(
+            int width,
+            int height,
+            float value,
+            int color
+    ) {
+        return progressBar(
+                width,
+                height,
+                value,
+                color
+        );
+    }
+
+    public static PixelGraphics healthBar(
+            int width,
+            int height,
+            float health,
+            int color
+    ) {
+        return progressBar(
+                width,
+                height,
+                health,
+                color
+        );
+    }
+
+    public static PixelGraphics radar(
+            int width,
+            int height,
+            int rings,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+        int radius = Math.min(width, height) / 2;
+
+        for (int i = 1; i <= rings; i++) {
+            int r = radius * i / rings;
+
+            drawRingAt(
+                    g,
+                    cx,
+                    cy,
+                    r,
+                    1,
+                    color
+            );
+        }
+
+        g.drawHorizontalLine(
+                0,
+                cy,
+                width,
+                color
+        );
+
+        g.drawVLine(
+                cx,
+                0,
+                height,
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics compass(
+            int width,
+            int height,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cx = width / 2;
+        int cy = height / 2;
+
+        int[] x = {
+                cx,
+                width - 1,
+                cx,
+                0
+        };
+
+        int[] y = {
+                0,
+                cy,
+                height - 1,
+                cy
+        };
+
+        g.drawLine(
+                x[0],
+                y[0],
+                x[2],
+                y[2],
+                color
+        );
+
+        g.drawLine(
+                x[1],
+                y[1],
+                x[3],
+                y[3],
+                color
+        );
+
+        return g;
+    }
+
+    public static PixelGraphics ruler(
+            int width,
+            int height,
+            int majorSpacing,
+            int minorSpacing,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        majorSpacing = Math.max(1, majorSpacing);
+        minorSpacing = Math.max(1, minorSpacing);
+
+        int baseY = height - 1;
+
+        g.drawHorizontalLine(
+                0,
+                baseY,
+                width,
+                color
+        );
+
+        for (int x = 0; x < width; x += minorSpacing) {
+
+            boolean major = x % majorSpacing == 0;
+
+            int tickHeight = major
+                    ? height / 2
+                    : height / 3;
+
+            g.drawVLine(
+                    x,
+                    baseY - tickHeight,
+                    tickHeight,
+                    color
+            );
+        }
+
+        return g;
+    }
+
+    public static PixelGraphics timeline(
+            int width,
+            int height,
+            int markers,
+            int color
+    ) {
+        PixelGraphics g = new PixelGraphics(width, height);
+
+        int cy = height / 2;
+
+        g.drawHorizontalLine(
+                0,
+                cy,
+                width,
+                color
+        );
+
+        if (markers < 1) {
+            return g;
+        }
+
+        for (int i = 0; i <= markers; i++) {
+            int x = i * (width - 1) / markers;
+
+            int tickHeight = height / 2;
+
+            g.drawVLine(
+                    x,
+                    cy - tickHeight / 2,
+                    tickHeight,
+                    color
+            );
+        }
+
+        return g;
+    }
+
+
+// ============================================================
+// Internal helpers for the new shapes
+// ============================================================
+
+    private static void drawFilledCircleAt(
+            PixelGraphics g,
+            int cx,
+            int cy,
+            int radius,
+            int color
+    ) {
+        if (radius <= 0) {
+            g.setPixel(cx, cy, color);
+            return;
+        }
+
+        int r2 = radius * radius;
+
+        for (int y = cy - radius; y <= cy + radius; y++) {
+            if (y < 0 || y >= g.height) continue;
+
+            for (int x = cx - radius; x <= cx + radius; x++) {
+                if (x < 0 || x >= g.width) continue;
+
+                int dx = x - cx;
+                int dy = y - cy;
+
+                if (dx * dx + dy * dy <= r2) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+    }
+
+    private static void drawRingAt(
+            PixelGraphics g,
+            int cx,
+            int cy,
+            int radius,
+            int thickness,
+            int color
+    ) {
+        if (radius <= 0) return;
+
+        int outer2 = radius * radius;
+        int innerRadius = Math.max(0, radius - thickness);
+        int inner2 = innerRadius * innerRadius;
+
+        for (int y = cy - radius; y <= cy + radius; y++) {
+            if (y < 0 || y >= g.height) continue;
+
+            for (int x = cx - radius; x <= cx + radius; x++) {
+                if (x < 0 || x >= g.width) continue;
+
+                int dx = x - cx;
+                int dy = y - cy;
+                int d2 = dx * dx + dy * dy;
+
+                if (d2 <= outer2 && d2 >= inner2) {
+                    g.setPixel(x, y, color);
+                }
+            }
+        }
+    }
 }
