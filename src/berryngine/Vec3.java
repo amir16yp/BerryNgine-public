@@ -45,6 +45,13 @@ public final class Vec3 {
         return this;
     }
 
+    public Vec3 addScaled(Vec3 velocity, float dt) {
+        this.x += velocity.x * dt;
+        this.y += velocity.y * dt;
+        this.z += velocity.z * dt;
+        return this;
+    }
+
     // =========================
     // ADD / SUB
     // =========================
