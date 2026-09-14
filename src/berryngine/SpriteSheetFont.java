@@ -31,15 +31,7 @@ public final class SpriteSheetFont {
 
     public SpriteSheetFont scale(int scaleFactor) {
         if (scaleFactor <= 1) return this;
-        int newW = glyphW * scaleFactor;
-        int newH = glyphH * scaleFactor;
-        int count = atlas.getTextureCount();
-        PixelGraphics combined = new PixelGraphics(newW * count, newH);
-        for (int i = 0; i < count; i++) {
-            PixelGraphics glyph = atlas.getTexture(i).scale(scaleFactor);
-            combined.drawImage(glyph, i * newW, 0);
-        }
-        return new SpriteSheetFont(characters, new TextureAtlas(combined, newW, newH));
+        return new SpriteSheetFont(characters, atlas.scale(scaleFactor));
     }
 
     public PixelGraphics getStringImage(String string, int color) {
