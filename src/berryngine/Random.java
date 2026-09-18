@@ -233,6 +233,20 @@ public final class Random {
         public int nextColor() {
             return Color.fromRGB(nextInt(0, 256), nextInt(0, 256), nextInt(0, 256));
         }
+
+        public int nextColorRange(int color1, int color2)
+        {
+            int r1 = Color.getRed(color1);
+            int g1 = Color.getGreen(color1);
+            int b1 = Color.getBlue(color1);
+            int a1 = Color.getAlpha(color1);
+
+            int r2 = Color.getRed(color2);
+            int g2 = Color.getGreen(color2);
+            int b2 = Color.getBlue(color2);
+            int a2 = Color.getAlpha(color2);
+            return Color.fromRGBA(this.nextInt(r1, r2), this.nextInt(g1, g2), this.nextInt(b1,b2), this.nextInt(a1, a2));
+        }
     }
 
     public static State newState() {
@@ -414,5 +428,10 @@ public final class Random {
 
     public static int nextColor() {
         return DEFAULT.nextColor();
+    }
+
+    public static int nextColorRange(int color1, int color2)
+    {
+        return DEFAULT.nextColorRange(color1, color2);
     }
 }
