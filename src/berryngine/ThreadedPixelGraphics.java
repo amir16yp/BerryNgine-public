@@ -1,7 +1,10 @@
 package berryngine;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +17,28 @@ import java.util.function.Consumer;
  * is the frame barrier. Textures must not be modified until execute() returns.
  */
 public final class ThreadedPixelGraphics implements AutoCloseable {
+    private static final int MAX_CACHED_STRING_PIXELS = 1_000_000;
+    private static final int MAX_CACHED_STRINGS = 256;
+
+    private static final class StringKey {
+        final Object font;
+        final String text;
+        final int color;
+
+        StringKey(Object font, String text, int color) {
+            this.font = font; this.text = text; this.color = color;
+        }
+        @Override public int hashCode() {
+            int hash = System.identityHashCode(font);
+            return 31 * (31 * hash + text.hashCode()) + color;
+        }
+        @Override public boolean equals(Object other) {
+            if (!(other instanceof StringKey)) return false;
+            StringKey key = (StringKey) other;
+            return font == key.font && color == key.color && text.equals(key.text);
+        }
+    }
+
     private interface Command { void draw(Tile tile); }
 
     private static final class Tile {
@@ -46,6 +71,8 @@ public final class ThreadedPixelGraphics implements AutoCloseable {
     private final int threads;
     private final ExecutorService workers;
     private final List<Command> commands = new ArrayList<>();
+    private final LinkedHashMap<StringKey, PixelGraphics> stringCache = new LinkedHashMap<>(16, 0.75f, true);
+    private int cachedStringPixels;
     private final Camera2D camera = new Camera2D();
     private Cursor cursor;
     private int clipX0, clipY0, clipX1, clipY1;
@@ -179,6 +206,40 @@ public final class ThreadedPixelGraphics implements AutoCloseable {
     public void renderString(SpriteSheetFont font, String text, int x, int y, int color) {
         drawImage(font.getStringImage(text, color), x, y);
     }
+    /** Cache the generated bitmap for repeated text, font, and color combinations. */
+    public void renderStringCached(BitmapFont font, String text, int x, int y, int color) {
+        Objects.requireNonNull(font, "font");
+        drawImage(cachedString(font, text, color), x, y);
+    }
+    /** Cache the generated bitmap for repeated text, font, and color combinations. */
+    public void renderStringCached(SpriteSheetFont font, String text, int x, int y, int color) {
+        Objects.requireNonNull(font, "font");
+        drawImage(cachedString(font, text, color), x, y);
+    }
+    private PixelGraphics cachedString(Object font, String text, int color) {
+        Objects.requireNonNull(text, "text");
+        StringKey key = new StringKey(font, text, color);
+        PixelGraphics image = stringCache.get(key);
+        if (image != null) return image;
+        image = font instanceof BitmapFont
+                ? ((BitmapFont) font).getStringImage(text, color)
+                : ((SpriteSheetFont) font).getStringImage(text, color);
+        int area = image.pixels.length;
+        if (area > MAX_CACHED_STRING_PIXELS) return image;
+        while (!stringCache.isEmpty() &&
+                (stringCache.size() >= MAX_CACHED_STRINGS || cachedStringPixels + area > MAX_CACHED_STRING_PIXELS)) {
+            Iterator<Map.Entry<StringKey, PixelGraphics>> iterator = stringCache.entrySet().iterator();
+            Map.Entry<StringKey, PixelGraphics> eldest = iterator.next();
+            cachedStringPixels -= eldest.getValue().pixels.length;
+            iterator.remove();
+        }
+        stringCache.put(key, image);
+        cachedStringPixels += area;
+        return image;
+    }
+    /** Clear cached text after changing a font's glyphs or atlas. */
+    public void clearStringCache() { stringCache.clear(); cachedStringPixels = 0; }
+    int cachedStringCount() { return stringCache.size(); }
     public boolean isVisibleWorld(float x, float y, float w, float h) { return camera.isVisible(x, y, w, h); }
     public void drawImageWorld(PixelGraphics image, float x, float y) {
         IVec2 screen = camera.worldToScreen(x, y);
