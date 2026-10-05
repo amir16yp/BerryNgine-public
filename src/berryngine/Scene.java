@@ -7,7 +7,7 @@ public interface Scene {
     default void fixedUpdate(GameWindow gw, float fixedDt) {
     }
 
-    void render(GameWindow gw, FramebufferPixelGraphics pg);
+    void render(GameWindow gw, ThreadedPixelGraphics pg);
 
     void onSceneEnter(GameWindow gameWindow);
 

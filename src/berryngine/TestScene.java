@@ -28,19 +28,24 @@ public final class TestScene implements Scene {
         if (frames < 1 || threads < 1) throw new IllegalArgumentException("frames and threads must be positive");
         TestScene scene = new TestScene();
         int[] pixels = new int[640 * 360];
-        FramebufferPixelGraphics pg = new FramebufferPixelGraphics(pixels, 640, 360);
-        for (int i = 0; i < 30; i++) {
-            scene.frame = i;
-            scene.render(null, pg);
+        try (ThreadedPixelGraphics pg = new ThreadedPixelGraphics(pixels, 640, 360, threads)) {
+            for (int i = 0; i < 30; i++) {
+                scene.frame = i;
+                pg.beginFrame();
+                scene.render(null, pg);
+                pg.execute();
+            }
+            long start = System.nanoTime();
+            for (int i = 0; i < frames; i++) {
+                scene.frame = i;
+                pg.beginFrame();
+                scene.render(null, pg);
+                pg.execute();
+            }
+            long elapsed = System.nanoTime() - start;
+            System.out.printf("renderer=threaded, frames=%d, threads=%d, ms/frame=%.3f, checksum=%d%n",
+                    frames, threads, elapsed / 1e6 / frames, Arrays.hashCode(pixels));
         }
-        long start = System.nanoTime();
-        for (int i = 0; i < frames; i++) {
-            scene.frame = i;
-            scene.render(null, pg);
-        }
-        long elapsed = System.nanoTime() - start;
-        System.out.printf("renderer=immediate, frames=%d, threads=1, ms/frame=%.3f, checksum=%d%n",
-                frames, elapsed / 1e6 / frames, Arrays.hashCode(pixels));
     }
 
     @Override public void onSceneEnter(GameWindow gw) { }
@@ -59,7 +64,7 @@ public final class TestScene implements Scene {
         }
     }
 
-    @Override public void render(GameWindow gw, FramebufferPixelGraphics pg) {
+    @Override public void render(GameWindow gw, ThreadedPixelGraphics pg) {
         pg.clear(Color.DARK_BLUE);
         for (int i = 0; i < 400; i++) {
             int x = (i * 73 + frame * 3) % 700 - 30;

@@ -30,6 +30,7 @@ public class GameWindow extends Canvas {
         private int fixedHz = 60;
         private boolean defaultMouseCapture = false;
         private PixelGraphics icon = null;
+        private int renderThreads = Math.max(1, Runtime.getRuntime().availableProcessors());
 
         private Builder(String title, IVec2 internalResolution) {
             this.title = title;
@@ -77,8 +78,15 @@ public class GameWindow extends Canvas {
             return this;
         }
 
+        /** Total rendering threads, including the game loop thread. */
+        public Builder renderThreads(int count) {
+            if (count < 1) throw new IllegalArgumentException("renderThreads must be positive");
+            this.renderThreads = count;
+            return this;
+        }
+
         public GameWindow build() {
-            GameWindow window = new GameWindow(title, internalResolution, windowScale, resizable);
+            GameWindow window = new GameWindow(title, internalResolution, windowScale, resizable, renderThreads);
             window.gameLoop.setTargetFps(targetFps);
             window.gameLoop.setFixedHz(fixedHz);
             if (fullscreen) window.setBorderlessFullscreen(true);
@@ -155,7 +163,7 @@ public class GameWindow extends Canvas {
         return internalResolution;
     }
 
-    private final FramebufferPixelGraphics graphics;
+    private final ThreadedPixelGraphics graphics;
     private final BufferedImage backBuffer;
     public boolean captureMouseByDefault = false;
 
@@ -164,10 +172,10 @@ public class GameWindow extends Canvas {
     }
 
     public GameWindow(String title, IVec2 internalResolution) {
-        this(title, internalResolution, 1, true);
+        this(title, internalResolution, 1, true, Math.max(1, Runtime.getRuntime().availableProcessors()));
     }
 
-    private GameWindow(String title, IVec2 internalResolution, int windowScale, boolean resizable) {
+    private GameWindow(String title, IVec2 internalResolution, int windowScale, boolean resizable, int renderThreads) {
         this.internalResolution = internalResolution;
         Dimension windowDimension = new Dimension(internalResolution.x * windowScale, internalResolution.y * windowScale);
         setPreferredSize(windowDimension);
@@ -252,7 +260,7 @@ public class GameWindow extends Canvas {
 
         backBuffer = new BufferedImage(internalResolution.x, internalResolution.y, BufferedImage.TYPE_INT_ARGB);
         int[] sharedPixels = ((DataBufferInt) backBuffer.getRaster().getDataBuffer()).getData();
-        graphics = new FramebufferPixelGraphics(sharedPixels, internalResolution.x, internalResolution.y);
+        graphics = new ThreadedPixelGraphics(sharedPixels, internalResolution.x, internalResolution.y, renderThreads);
         // ---------------- INPUT ----------------
 //        addKeyListener(input);
 
@@ -436,7 +444,7 @@ public class GameWindow extends Canvas {
 
     // ---------------- API ----------------
 
-    public FramebufferPixelGraphics getGraphicsAPI() {
+    public ThreadedPixelGraphics getGraphicsAPI() {
         return graphics;
     }
 
