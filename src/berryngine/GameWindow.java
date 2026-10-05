@@ -462,6 +462,7 @@ public class GameWindow extends Canvas {
 
     public void clear(int color) {
         graphics.clear(color);
+        graphics.execute();
     }
 
     // ---------------- PRESENT ----------------
