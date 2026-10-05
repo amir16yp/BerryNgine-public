@@ -78,6 +78,11 @@ processors. Set `.renderThreads(1)` for a serial comparison.
   those calls are recorded. The software cursor is rendered after scene calls.
 - The render pipeline is owned by the game loop. Do not record commands into
   it from other threads or hold it past `render`.
+- For repeated labels, use `renderStringCached(font, text, x, y, color)` with
+  either `BitmapFont` or `SpriteSheetFont`. It reuses generated string images
+  across frames and keeps at most 256 entries or one million cached pixels.
+  Font identity, text, and color form the cache key. Call `clearStringCache()`
+  after changing glyphs or an atlas used by a cached font.
 
 The supported frame commands include pixels, blended pixels, filled and outline
 rectangles, lines, images, blended images, scaled images, text, and common
