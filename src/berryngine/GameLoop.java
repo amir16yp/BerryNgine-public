@@ -38,7 +38,7 @@ public final class GameLoop implements Runnable {
 
     @Override
     public void run() {
-
+        try {
         lastTime = System.nanoTime();
         fpsTimer = System.nanoTime();
 
@@ -99,6 +99,9 @@ public final class GameLoop implements Runnable {
                     }
                 }
             }
+        }
+        } finally {
+            window.getGraphicsAPI().close();
         }
     }
 

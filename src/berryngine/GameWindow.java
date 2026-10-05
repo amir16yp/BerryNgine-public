@@ -283,7 +283,6 @@ public class GameWindow extends Canvas {
             @Override
             public void windowClosing(WindowEvent e) {
                 gameLoop.stop();
-                graphics.close();
                 audioMixer.close();
                 soundSystem.close();
             }

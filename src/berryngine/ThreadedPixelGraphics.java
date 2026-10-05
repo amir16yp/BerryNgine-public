@@ -227,11 +227,13 @@ public final class ThreadedPixelGraphics implements AutoCloseable {
     /** Execute all recorded commands before the buffer is presented. */
     public void execute() {
         if (commands.isEmpty()) return;
-        List<Command> batch = new ArrayList<>(commands);
-        commands.clear();
+        // Recording is confined to the game loop thread. Reuse the command list
+        // after the frame barrier instead of copying it on every frame.
+        List<Command> batch = commands;
         int tileCount = Math.min(threads, height);
         if (tileCount == 1 || workers == null) {
-            drawTile(batch, 0, height);
+            try { drawTile(batch, 0, height); }
+            finally { commands.clear(); }
             return;
         }
         List<Future<?>> futures = new ArrayList<>(tileCount - 1);
@@ -239,12 +241,27 @@ public final class ThreadedPixelGraphics implements AutoCloseable {
             final int start = i * height / tileCount, end = (i + 1) * height / tileCount;
             futures.add(workers.submit(() -> drawTile(batch, start, end)));
         }
-        drawTile(batch, 0, height / tileCount);
+        Throwable failure = null;
+        boolean interrupted = false;
+        try { drawTile(batch, 0, height / tileCount); }
+        catch (Throwable error) { failure = error; }
         for (Future<?> future : futures) {
-            try { future.get(); }
-            catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new IllegalStateException("Render interrupted", e); }
-            catch (ExecutionException e) { throw new IllegalStateException("Render failed", e.getCause()); }
+            boolean done = false;
+            while (!done) {
+                try { future.get(); done = true; }
+                catch (InterruptedException e) {
+                    interrupted = true;
+                    if (failure == null) failure = e;
+                }
+                catch (ExecutionException e) {
+                    if (failure == null) failure = e.getCause();
+                    done = true;
+                }
+            }
         }
+        commands.clear();
+        if (interrupted) Thread.currentThread().interrupt();
+        if (failure != null) throw new IllegalStateException("Render failed", failure);
     }
     private void drawTile(List<Command> batch, int y0, int y1) {
         Tile tile = new Tile(pixels, width, height, y0, y1);
