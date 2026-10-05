@@ -1,6 +1,8 @@
 package berryngine;
 
 import java.util.ArrayList;
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.List;
 
 public final class Animation {
@@ -9,7 +11,7 @@ public final class Animation {
     private final int[] frames;
     private final float frameDuration;
     private boolean registered = false;
-    private static final List<Animation> registeredAnimations = new ArrayList<>();
+    private static final List<WeakReference<Animation>> registeredAnimations = new ArrayList<>();
     private float elapsed;
     private int currentFrame;
     private boolean loop;
@@ -31,13 +33,28 @@ public final class Animation {
         this.finished = false;
     }
 
-    public Animation register() {
+    /** Register for automatic updates. Keep a reference while the animation is in use. */
+    public synchronized Animation register() {
         if (registered) {
             return this;
         }
         registered = true;
-        registeredAnimations.add(this);
+        synchronized (registeredAnimations) {
+            registeredAnimations.removeIf(reference -> reference.get() == null);
+            registeredAnimations.add(new WeakReference<>(this));
+        }
         return this;
+    }
+
+    /** Stop automatic updates when this animation is no longer in use. */
+    public synchronized void unregister() {
+        registered = false;
+        synchronized (registeredAnimations) {
+            registeredAnimations.removeIf(reference -> {
+                Animation animation = reference.get();
+                return animation == null || animation == this;
+            });
+        }
     }
 
     public static Animation ofRange(TextureAtlas atlas, int startIndex, int endIndex, float frameDuration) {
@@ -74,7 +91,16 @@ public final class Animation {
     }
 
     public static void updateRegistered(float dt) {
-        for (Animation animation : registeredAnimations) {
+        List<Animation> snapshot = new ArrayList<>();
+        synchronized (registeredAnimations) {
+            Iterator<WeakReference<Animation>> iterator = registeredAnimations.iterator();
+            while (iterator.hasNext()) {
+                Animation animation = iterator.next().get();
+                if (animation == null) iterator.remove();
+                else snapshot.add(animation);
+            }
+        }
+        for (Animation animation : snapshot) {
             animation.update(dt);
         }
     }

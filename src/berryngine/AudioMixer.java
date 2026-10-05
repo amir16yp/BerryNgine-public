@@ -52,6 +52,8 @@ public final class AudioMixer {
             return -1;
         }
 
+        cleanup();
+
         float groupVolume = getGroupVolume(group);
         int handle = soundSystem.play(file, volume * groupVolume, loop);
         if (handle > 0) {

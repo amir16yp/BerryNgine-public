@@ -60,6 +60,9 @@ public final class Utils {
     }
 
     public static byte[] getFileFromResourcesZip(String resourcePath, String entryPath) {
+        if (entryPath == null) {
+            throw new IllegalArgumentException("entryPath cannot be null");
+        }
         InputStream zipStream = Utils.class.getResourceAsStream(resourcePath);
         if (zipStream == null) {
             throw new IllegalArgumentException("Resource not found: " + resourcePath);
@@ -235,7 +238,12 @@ public final class Utils {
         // Ensure we get an ARGB-compatible image (important for safety)
         if (image.getType() != BufferedImage.TYPE_INT_ARGB) {
             BufferedImage converted = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            converted.getGraphics().drawImage(image, 0, 0, null);
+            java.awt.Graphics2D graphics = converted.createGraphics();
+            try {
+                graphics.drawImage(image, 0, 0, null);
+            } finally {
+                graphics.dispose();
+            }
             image = converted;
         }
 

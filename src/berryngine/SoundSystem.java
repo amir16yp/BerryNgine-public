@@ -5,8 +5,8 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class SoundSystem implements AutoCloseable {
 
@@ -23,7 +23,8 @@ public class SoundSystem implements AutoCloseable {
     private final byte[] outputBuffer;
     private final int[] mixBuffer;
 
-    private final Map<Sound, SoundClip> clipCache = new HashMap<>();
+    // A completed sound must not keep its source and converted PCM alive forever.
+    private final Map<Sound, SoundClip> clipCache = new WeakHashMap<>();
     private final Object lock = new Object();
 
     private Voice[] voices = new Voice[64];
@@ -45,6 +46,7 @@ public class SoundSystem implements AutoCloseable {
             l.start();
             ok = true;
         } catch (LineUnavailableException | IllegalArgumentException e) {
+            if (l != null) l.close();
             System.err.println("SoundSystem: audio line unavailable, sound disabled (" + e.getMessage() + ")");
         }
 
@@ -79,7 +81,7 @@ public class SoundSystem implements AutoCloseable {
     }
 
     public int play(Sound file, float volume, boolean loop) {
-        if (!available || file == null || volume <= 0.0f) {
+        if (!available || !running || file == null || volume <= 0.0f) {
             return -1;
         }
         if (file.samples <= 0 || file.samplerate <= 0) {
@@ -228,8 +230,12 @@ public class SoundSystem implements AutoCloseable {
         }
         if (line != null) {
             line.stop();
-            line.drain();
+            line.flush();
             line.close();
+        }
+        stopAll();
+        synchronized (clipCache) {
+            clipCache.clear();
         }
     }
 
@@ -317,12 +323,14 @@ public class SoundSystem implements AutoCloseable {
     }
 
     private SoundClip getOrCreateClip(Sound file) {
-        SoundClip clip = clipCache.get(file);
-        if (clip == null) {
-            clip = convert(file);
-            clipCache.put(file, clip);
+        synchronized (clipCache) {
+            SoundClip clip = clipCache.get(file);
+            if (clip == null) {
+                clip = convert(file);
+                clipCache.put(file, clip);
+            }
+            return clip;
         }
-        return clip;
     }
 
     private SoundClip convert(Sound file) {

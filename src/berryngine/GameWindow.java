@@ -482,9 +482,12 @@ public class GameWindow extends Canvas {
         do {
             do {
                 Graphics2D g = (Graphics2D) bs.getDrawGraphics();
-                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-                g.drawImage(backBuffer, 0, 0, w, h, null);
-                g.dispose();
+                try {
+                    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                    g.drawImage(backBuffer, 0, 0, w, h, null);
+                } finally {
+                    g.dispose();
+                }
             } while (bs.contentsRestored());
             bs.show();
         } while (bs.contentsLost());

@@ -70,6 +70,7 @@ public final class GameLoop implements Runnable {
             }
             // ---------------- update/render ----------------
             window.sceneManager.update(scaledDt);
+            window.audioMixer.cleanup();
 
             ThreadedPixelGraphics graphics = window.getGraphicsAPI();
             graphics.update(scaledDt);
@@ -101,6 +102,8 @@ public final class GameLoop implements Runnable {
             }
         }
         } finally {
+            window.audioMixer.close();
+            window.soundSystem.close();
             window.getGraphicsAPI().close();
         }
     }

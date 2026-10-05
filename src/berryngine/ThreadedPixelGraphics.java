@@ -677,5 +677,12 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
     private void drawTile(Tile tile) {
         for (Command command : commands) command.draw(tile);
     }
-    @Override public void close() { if (workers != null) workers.shutdownNow(); }
+    @Override public void close() {
+        if (workers != null) workers.shutdownNow();
+        commands.clear();
+        futures.clear();
+        clearStringCache();
+        cursor = null;
+        stringLookup.set(null, "", 0);
+    }
 }
