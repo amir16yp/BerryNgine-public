@@ -59,7 +59,7 @@ public class SceneManager {
         }
     }
 
-    public void render(FramebufferPixelGraphics pg) {
+    public void render(ThreadedPixelGraphics pg) {
         if (currentScene != null) {
 
             currentScene.render(window, pg);

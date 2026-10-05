@@ -71,10 +71,12 @@ public final class GameLoop implements Runnable {
             // ---------------- update/render ----------------
             window.sceneManager.update(scaledDt);
 
-            FramebufferPixelGraphics graphics = window.getGraphicsAPI();
+            ThreadedPixelGraphics graphics = window.getGraphicsAPI();
             graphics.update(scaledDt);
+            graphics.beginFrame();
             window.sceneManager.render(graphics);
             graphics.renderCursor();
+            graphics.execute();
             window.present();
 
             // ---------------- FPS tracking ----------------
