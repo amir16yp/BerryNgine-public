@@ -1,96 +1,162 @@
 # BerryNgine
 
-BerryNgine is a small, dependency-free 2D game engine in Java. This branch uses
-an ordered, tile-parallel software render pipeline. A scene records drawing
-commands, and the engine renders screen tiles on multiple cores before showing
-the frame. Commands within each tile run in their recorded order, so overlapping
-shapes and transparent sprites have deterministic ordering.
+BerryNgine is a small 2D game engine written in Java. It renders into an ARGB
+pixel buffer and scales that buffer to a Swing window. It has no external
+dependencies.
 
-## Build and compare
+The default renderer records drawing commands in source order. At the end of
+each frame, it splits the framebuffer into horizontal tiles and renders those
+tiles on multiple cores. Every tile processes commands in the order they were
+recorded, so overlapping shapes and blended sprites keep their intended order.
 
-On Windows, run `build.bat` to create `build\berryngine-<branch>.jar`. Run
-`build.bat test` to build and launch the included basic scene. The same scene
-and batch interface are present on `main`, which uses the original immediate
-renderer. Both scenes draw 400 rectangles, 400 blended sprites, and a line per
-frame, with FPS shown in the title. Run with comparable window size and Java
-settings when comparing branches.
+## Build and run
 
-For a display-independent comparison on this branch:
+Use a JDK with `javac` and `jar` on `PATH`. On Windows:
 
 ```bat
-build.bat benchmark 300 4
+build.bat
+build.bat test
+build.bat benchmark 1000 4
 ```
 
-The benchmark runs the test scene without a window and reports milliseconds
-per frame and an output checksum. Pass `1` as the second argument for a serial
-pipeline run. Use the same command on `main` for the original renderer.
+`build.bat` writes `build\berryngine-<branch-name>.jar`. `test` launches the
+included scene and shows FPS in the window title. `benchmark` runs the same
+scene without a window and prints milliseconds per frame and a framebuffer
+checksum. Its optional arguments are frame count and thread count.
 
-## Scene API
+The original immediate renderer is preserved on the
+`immediate-render-baseline` branch. Build that branch to get
+`build\berryngine-immediate-render-baseline.jar`. It has the same test scene and
+batch interface. The `threaded-render-pipeline` branch tracks development of
+the new renderer; `main` uses the threaded renderer by default.
+
+## Start a scene
 
 ```java
 import berryngine.*;
 
-public class Demo implements Scene {
-    private PixelGraphics sprite;
+public final class Demo implements Scene {
+    private PixelGraphics player;
+    private final Vec2 position = new Vec2(80, 60);
 
     public static void main(String[] args) {
-        GameWindow.builder("Demo", 640, 360)
-                .scale(2)
-                .renderThreads(4) // total, including the game loop thread
+        GameWindow.builder("Demo", 320, 180)
+                .scale(3)
+                .renderThreads(4)
                 .targetFps(60)
                 .run(new Demo());
     }
 
     public void onSceneEnter(GameWindow gw) {
-        sprite = ShapeGenerator.filledCircle(12, 0x88ff8800);
+        player = ShapeGenerator.filledCircle(12, Color.ORANGE);
     }
+
     public void onSceneExit(GameWindow gw) { }
-    public void update(GameWindow gw, float dt) { }
+
+    public void update(GameWindow gw, float dt) {
+        position.x += 20 * dt;
+    }
+
     public void render(GameWindow gw, ThreadedPixelGraphics pg) {
         pg.clear(Color.DARK_BLUE);
-        pg.fillRect(20, 20, 80, 40, Color.BLUE);
-        pg.drawImageBlended(sprite, 40, 30);
+        pg.fillGradientRect(0, 0, pg.width, pg.height,
+                Color.MIDNIGHT_BLUE, Color.BLACK, false);
+        pg.drawImageBlended(player, position);
+        pg.renderStringCached(SpriteSheetFont.ABLE4,
+                "BERRYNGINE", 8, 8, Color.WHITE);
     }
 }
 ```
 
-The game loop calls `beginFrame()`, invokes `Scene.render`, calls `execute()`,
-and only then presents the framebuffer. Scenes do not normally call those
-methods themselves. The default render thread count is the number of available
-processors. Set `.renderThreads(1)` for a serial comparison.
+`Scene.render` receives a `ThreadedPixelGraphics`. It extends `PixelGraphics`,
+so it can be passed to APIs that accept a `PixelGraphics`. The game loop calls
+`beginFrame()`, invokes the scene, calls `execute()`, then presents the finished
+buffer. Scene code normally only records draw calls. The default thread count
+is `Runtime.getRuntime().availableProcessors()`; `.renderThreads(1)` runs the
+same command path on the game loop thread.
 
-## Rendering rules
+## Drawing API
 
-- `ThreadedPixelGraphics` is the frame-facing API. Its calls enqueue drawing
-  commands. The source order of calls is the visible draw order.
-- `PixelGraphics` remains an in-memory texture and asset buffer. Generate
-  shapes, load textures, or draw into offscreen textures with it before using
-  them in the render pipeline.
-- Keep a texture's pixel array unchanged from the time it is queued until the
-  frame has executed. Command coordinates, clip, and global alpha are captured
-  as commands are recorded.
-- `setClip`, `clearClip`, and `setGlobalAlpha` affect subsequent commands.
-  `clear` always covers the whole framebuffer.
-- `effect(pg -> PostFX.grayscale(pg))` executes preceding drawing first, applies
-  the effect to the complete buffer, then lets later commands form the next
-  ordered drawing stage. Existing `PostFX` functions can be used this way.
-- The camera on `pg.getCamera()` transforms world-space drawing calls when
-  those calls are recorded. The software cursor is rendered after scene calls.
-- The render pipeline is owned by the game loop. Do not record commands into
-  it from other threads or hold it past `render`.
-- For repeated labels, use `renderStringCached(font, text, x, y, color)` with
-  either `BitmapFont` or `SpriteSheetFont`. It reuses generated string images
-  across frames and keeps at most 256 entries or one million cached pixels.
-  Font identity, text, and color form the cache key. Call `clearStringCache()`
-  after changing glyphs or an atlas used by a cached font.
+The framebuffer API includes the methods below. Each call appears in the
+final image in the order it was made.
 
-The supported frame commands include pixels, blended pixels, filled and outline
-rectangles, lines, images, blended images, scaled images, text, and common
-world-space variants. Use `PixelGraphics` for texture preparation. Assets,
-input, audio, animation, and utility classes remain available under
-`berryngine.*`.
+| Task | Methods |
+| --- | --- |
+| Pixels and lines | `setPixel`, `blendPixel`, `blendPixelGlobal`, `drawLine`, `drawHorizontalLine`, `drawVLine`, `drawTaperedLine` |
+| Rectangles and gradients | `fillRect`, `fillRectBlended`, `drawRect`, `fillGradientRect`, `drawVerticalGradient`, `fillRect(..., Paint)` |
+| Images | `drawImage`, `drawImageBlended`, `drawImageTinted`, `drawImageFlipped`, `drawImageScaled`, `drawImageScaledBlended` |
+| Text | `renderChar`, `renderString`, `renderStringCached` |
+| State and effects | `setClip`, `clearClip`, `setGlobalAlpha`, `applyVignette`, `effect` |
+| World coordinates | `drawImageWorld`, `drawImageBlendedWorld`, `fillRectWorld`, `drawRectWorld`, `drawLineWorld`, `setPixelWorld` |
 
-## Runtime requirements
+Image methods accept either `PixelGraphics` textures or raw `int[]` pixels with
+source dimensions where the original API did. Raw array overloads record the
+array reference directly; they do not create a texture wrapper for each draw.
+Keep the source pixels unchanged until `execute()` completes.
 
-A JDK with `javac` and `jar` on `PATH` is needed to build. The runtime uses
-standard Java Swing, AWT, and Java Sound, with no external libraries.
+`setClip` and `setGlobalAlpha` affect later recorded commands. Their values are
+captured when each command is recorded. `clear` always covers the whole
+framebuffer. `drawImage` replaces nontransparent pixels; blended, tinted,
+flipped, and scaled image variants use alpha blending.
+
+The existing `IVec2` overloads are inherited. `Vec2` and `Vec3` overloads are
+also available for common pixel, line, rectangle, gradient, image, text, clip,
+and world-space calls. Screen-space float coordinates are truncated to integers
+when recorded. `Vec3.z` does not set depth: command order controls layering.
+
+### Text
+
+`renderString` draws glyphs without building a string image on every call.
+For text that repeats across frames, `renderStringCached` keeps a rendered
+pixel array keyed by font instance, text, and color. The cache holds at most
+256 strings or one million pixels and removes older entries as needed. Call
+`clearStringCache()` if you change a font's glyphs or atlas after caching text.
+
+```java
+pg.renderString(BitmapFont.DEFAULT_8X9, "Score: " + score,
+        8, 8, Color.WHITE);
+pg.renderStringCached(SpriteSheetFont.START2P, "PAUSED",
+        120, 80, Color.YELLOW);
+```
+
+### Camera and effects
+
+`pg.getCamera()` holds the 2D camera. World-space calls transform coordinates
+when recorded, so changing the camera later in the frame does not move already
+recorded commands. The software cursor is drawn after the scene.
+
+Some operations need a finished framebuffer. `effect` first executes queued
+drawing, runs the callback on the complete buffer, then lets subsequent calls
+start a new ordered drawing stage:
+
+```java
+pg.drawImageWorld(level, 0, 0);
+pg.effect(buffer -> PostFX.grayscale(buffer));
+pg.renderStringCached(BitmapFont.DEFAULT_8X9, "PAUSED",
+        8, 8, Color.WHITE);
+```
+
+`fillRect(..., Paint)`, `applyVignette`, tapered lines, and some scaled or
+background-filled text methods also use an ordered full-frame stage. Prefer
+ordinary fills, gradients, sprites, and text for high-volume drawing.
+
+## Texture and buffer ownership
+
+`PixelGraphics` remains the class for in-memory textures and offscreen drawing.
+Asset loaders, `ShapeGenerator`, fonts, and atlases return these textures. A
+`ThreadedPixelGraphics` is tied to the window's framebuffer. Its `setBuffer`
+method rejects rebinding because the window presents the original pixel array.
+
+Inherited `pixels`, `width`, and `height` fields are public. Direct reads or
+writes to `pixels` bypass the command queue. Call `execute()` before reading
+the framebuffer; use drawing methods to change it so ordering stays defined.
+`getPixel`, `getSubImage`, `toBufferedImage`, `scale`, and `scaleTo` execute
+queued commands before reading. Do not resize or replace the window's pixel
+array or change its dimensions.
+
+## Other engine systems
+
+The package also includes `SceneManager`, `GameLoop`, input, camera control,
+audio playback and synthesis, animations, shape generation, QOI/QOA decoding,
+fonts, color and vector math, and resource loading. All live under
+`berryngine.*` and use only the standard JDK.
