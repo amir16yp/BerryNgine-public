@@ -12,10 +12,8 @@ public final class PostFX {
     // -------------------------------------------------------------------------
 
     public static void grayscale(PixelGraphics g) {
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -23,7 +21,7 @@ public final class PostFX {
 
             int gray = (r * 77 + gr * 150 + b * 29) >> 8;
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     gray,
                     gray,
                     gray,
@@ -33,16 +31,14 @@ public final class PostFX {
     }
 
     public static void invert(PixelGraphics g) {
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = 255 - Color.getRed(c);
             int gr = 255 - Color.getGreen(c);
             int b = 255 - Color.getBlue(c);
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -54,28 +50,22 @@ public final class PostFX {
     public static void tint(PixelGraphics g, int color, float amount) {
         amount = Mathf.clamp01(amount);
 
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = Color.lerp(pixels[i], color, amount);
+        for (int i = 0; i < g.pixels.length; i++) {
+            g.pixels[i] = Color.lerp(g.pixels[i], color, amount);
         }
     }
 
     public static void brightness(PixelGraphics g, float amount) {
         amount = Math.max(0.0f, amount);
 
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = Color.multiply(pixels[i], amount);
+        for (int i = 0; i < g.pixels.length; i++) {
+            g.pixels[i] = Color.multiply(g.pixels[i], amount);
         }
     }
 
     public static void contrast(PixelGraphics g, float amount) {
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -85,7 +75,7 @@ public final class PostFX {
             gr = clamp255((int) ((gr - 128) * amount + 128));
             b = clamp255((int) ((b - 128) * amount + 128));
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -101,10 +91,8 @@ public final class PostFX {
      * > 1 = increased saturation
      */
     public static void saturation(PixelGraphics g, float amount) {
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -116,7 +104,7 @@ public final class PostFX {
             gr = clamp255((int) (gray + (gr - gray) * amount));
             b = clamp255((int) (gray + (b - gray) * amount));
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -140,17 +128,16 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
         float scale = 255.0f / (whitePoint - blackPoint);
 
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = clamp255((int) ((Color.getRed(c) - blackPoint) * scale));
             int gr = clamp255((int) ((Color.getGreen(c) - blackPoint) * scale));
             int b = clamp255((int) ((Color.getBlue(c) - blackPoint) * scale));
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -168,17 +155,16 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
         int max = levels - 1;
 
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = quantizeChannel(Color.getRed(c), levels);
             int gr = quantizeChannel(Color.getGreen(c), levels);
             int b = quantizeChannel(Color.getBlue(c), levels);
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -192,10 +178,8 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -227,7 +211,7 @@ public final class PostFX {
                 }
             }
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     Color.getRed(bestColor),
                     Color.getGreen(bestColor),
                     Color.getBlue(bestColor),
@@ -250,14 +234,13 @@ public final class PostFX {
                 {15,  7, 13,  5 }
         };
 
-        int[] pixels = g.pixels;
         int w = g.width;
         int h = g.height;
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int index = y * w + x;
-                int c = pixels[index];
+                int c = g.pixels[index];
 
                 int r = Color.getRed(c);
                 int gr = Color.getGreen(c);
@@ -298,7 +281,7 @@ public final class PostFX {
                     }
                 }
 
-                pixels[index] = Color.fromRGBA(
+                g.pixels[index] = Color.fromRGBA(
                         Color.getRed(bestColor),
                         Color.getGreen(bestColor),
                         Color.getBlue(bestColor),
@@ -314,16 +297,14 @@ public final class PostFX {
             int to,
             int tolerance) {
 
-        int[] pixels = g.pixels;
-
         int fr = Color.getRed(from);
         int fg = Color.getGreen(from);
         int fb = Color.getBlue(from);
 
         tolerance = Math.max(0, tolerance);
 
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -333,7 +314,7 @@ public final class PostFX {
                     Math.abs(gr - fg) <= tolerance &&
                     Math.abs(b - fb) <= tolerance) {
 
-                pixels[i] = Color.fromRGBA(
+                g.pixels[i] = Color.fromRGBA(
                         Color.getRed(to),
                         Color.getGreen(to),
                         Color.getBlue(to),
@@ -365,7 +346,6 @@ public final class PostFX {
                 15, 7, 13,  5
         };
 
-        int[] pixels = g.pixels;
         int w = g.width;
         int h = g.height;
 
@@ -373,9 +353,8 @@ public final class PostFX {
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-
                 int index = y * w + x;
-                int c = pixels[index];
+                int c = g.pixels[index];
 
                 int threshold = matrix[(y & 3) * 4 + (x & 3)];
 
@@ -390,7 +369,7 @@ public final class PostFX {
                 gr = quantizeChannel(gr, levels);
                 b = quantizeChannel(b, levels);
 
-                pixels[index] = Color.fromRGBA(
+                g.pixels[index] = Color.fromRGBA(
                         r,
                         gr,
                         b,
@@ -415,15 +394,14 @@ public final class PostFX {
 
         strength = Mathf.clamp01(strength);
 
-        int[] pixels = g.pixels;
         int w = g.width;
         int h = g.height;
 
         for (int y = 0; y < h; y += spacing) {
             for (int x = 0; x < w; x++) {
                 int index = y * w + x;
-                pixels[index] =
-                        Color.multiply(pixels[index], 1.0f - strength);
+                g.pixels[index] =
+                        Color.multiply(g.pixels[index], 1.0f - strength);
             }
         }
     }
@@ -435,7 +413,6 @@ public final class PostFX {
             PixelGraphics g,
             float strength,
             long seed) {
-
         strength = Mathf.clamp01(strength);
 
         if (strength <= 0.0f) {
@@ -444,12 +421,10 @@ public final class PostFX {
 
         Random random = new Random(seed);
 
-        int[] pixels = g.pixels;
-
         int amount = (int) (255.0f * strength);
 
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int noise = random.nextInt(amount * 2 + 1) - amount;
 
@@ -457,7 +432,7 @@ public final class PostFX {
             int gr = clamp255(Color.getGreen(c) + noise);
             int b = clamp255(Color.getBlue(c) + noise);
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -487,8 +462,7 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
-        int[] source = pixels.clone();
+        int[] source = g.pixels.clone();
 
         int w = g.width;
         int h = g.height;
@@ -504,7 +478,7 @@ public final class PostFX {
                 int red = source[row + redX];
                 int blue = source[row + blueX];
 
-                pixels[row + x] = Color.fromRGBA(
+                g.pixels[row + x] = Color.fromRGBA(
                         Color.getRed(red),
                         Color.getGreen(center),
                         Color.getBlue(blue),
@@ -528,8 +502,7 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
-        int[] source = pixels.clone();
+        int[] source = g.pixels.clone();
 
         int w = g.width;
         int h = g.height;
@@ -560,14 +533,14 @@ public final class PostFX {
                         sourceY < 0 ||
                         sourceY >= h) {
 
-                    pixels[index] = Color.fromRGBA(
+                    g.pixels[index] = Color.fromRGBA(
                             0,
                             0,
                             0,
                             Color.getAlpha(source[index])
                     );
                 } else {
-                    pixels[index] =
+                    g.pixels[index] =
                             source[sourceY * w + sourceX];
                 }
             }
@@ -596,8 +569,7 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
-        int[] source = pixels.clone();
+        int[] source = g.pixels.clone();
 
         int w = g.width;
         int h = g.height;
@@ -618,7 +590,7 @@ public final class PostFX {
                     sourceX = w - 1;
                 }
 
-                pixels[y * w + x] =
+                g.pixels[y * w + x] =
                         source[y * w + sourceX];
             }
         }
@@ -631,10 +603,7 @@ public final class PostFX {
     public static void vignette(
             PixelGraphics g,
             float strength) {
-
         strength = Mathf.clamp01(strength);
-
-        int[] pixels = g.pixels;
 
         int w = g.width;
         int h = g.height;
@@ -660,8 +629,8 @@ public final class PostFX {
 
                 int index = y * w + x;
 
-                pixels[index] =
-                        Color.multiply(pixels[index], factor);
+                g.pixels[index] =
+                        Color.multiply(g.pixels[index], factor);
             }
         }
     }
@@ -709,13 +678,10 @@ public final class PostFX {
     public static void nightVision(
             PixelGraphics g,
             float strength) {
-
         strength = Mathf.clamp01(strength);
 
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -735,7 +701,7 @@ public final class PostFX {
                             Color.getAlpha(c)
                     );
 
-            pixels[i] =
+            g.pixels[i] =
                     Color.lerp(c, target, strength);
         }
     }
@@ -746,13 +712,10 @@ public final class PostFX {
     public static void heatVision(
             PixelGraphics g,
             float strength) {
-
         strength = Mathf.clamp01(strength);
 
-        int[] pixels = g.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -804,7 +767,7 @@ public final class PostFX {
                             Color.getAlpha(c)
                     );
 
-            pixels[i] =
+            g.pixels[i] =
                     Color.lerp(c, target, strength);
         }
     }
@@ -821,14 +784,11 @@ public final class PostFX {
             return;
         }
 
-        int[] pixels = g.pixels;
-
         int w = g.width;
         int h = g.height;
 
         for (int y = 0; y < h; y += factor) {
             for (int x = 0; x < w; x += factor) {
-
                 int sampleX =
                         Math.min(x + factor / 2, w - 1);
 
@@ -836,17 +796,16 @@ public final class PostFX {
                         Math.min(y + factor / 2, h - 1);
 
                 int color =
-                        pixels[sampleY * w + sampleX];
+                        g.pixels[sampleY * w + sampleX];
 
                 for (int by = 0;
                      by < factor && y + by < h;
                      by++) {
-
                     for (int bx = 0;
                          bx < factor && x + bx < w;
                          bx++) {
 
-                        pixels[(y + by) * w + (x + bx)] =
+                        g.pixels[(y + by) * w + (x + bx)] =
                                 color;
                     }
                 }
@@ -875,8 +834,7 @@ public final class PostFX {
         int w = g.width;
         int h = g.height;
 
-        int[] pixels = g.pixels;
-        int[] temp = new int[pixels.length];
+        int[] temp = new int[g.pixels.length];
 
         // Horizontal pass.
         for (int y = 0; y < h; y++) {
@@ -893,7 +851,7 @@ public final class PostFX {
                 int maxX = Math.min(w - 1, x + radius);
 
                 for (int sx = minX; sx <= maxX; sx++) {
-                    int c = pixels[y * w + sx];
+                    int c = g.pixels[y * w + sx];
 
                     r += Color.getRed(c);
                     gr += Color.getGreen(c);
@@ -938,7 +896,7 @@ public final class PostFX {
                     count++;
                 }
 
-                pixels[y * w + x] =
+                g.pixels[y * w + x] =
                         Color.fromRGBA(
                                 (int) (r / count),
                                 (int) (gr / count),
@@ -994,16 +952,13 @@ public final class PostFX {
         int w = g.width;
         int h = g.height;
 
-        int[] pixels = g.pixels;
-        int[] original = pixels.clone();
+        int[] original = g.pixels.clone();
 
         PixelGraphics bright =
                 new PixelGraphics(w, h);
 
-        int[] brightPixels = bright.pixels;
-
-        for (int i = 0; i < pixels.length; i++) {
-            int c = pixels[i];
+        for (int i = 0; i < g.pixels.length; i++) {
+            int c = g.pixels[i];
 
             int r = Color.getRed(c);
             int gr = Color.getGreen(c);
@@ -1013,9 +968,9 @@ public final class PostFX {
                     (r * 77 + gr * 150 + b * 29) >> 8;
 
             if (brightness >= threshold) {
-                brightPixels[i] = c;
+                bright.pixels[i] = c;
             } else {
-                brightPixels[i] =
+                bright.pixels[i] =
                         Color.fromRGBA(
                                 0,
                                 0,
@@ -1027,9 +982,9 @@ public final class PostFX {
 
         gaussianBlur(bright, radius);
 
-        for (int i = 0; i < pixels.length; i++) {
+        for (int i = 0; i < g.pixels.length; i++) {
             int base = original[i];
-            int glow = brightPixels[i];
+            int glow = bright.pixels[i];
 
             int r = clamp255(
                     (int) (
@@ -1052,7 +1007,7 @@ public final class PostFX {
                     )
             );
 
-            pixels[i] = Color.fromRGBA(
+            g.pixels[i] = Color.fromRGBA(
                     r,
                     gr,
                     b,
@@ -1074,9 +1029,7 @@ public final class PostFX {
             PixelGraphics g,
             int outlineColor,
             int tolerance) {
-
-        int[] pixels = g.pixels;
-        int[] source = pixels.clone();
+        int[] source = g.pixels.clone();
 
         int w = g.width;
         int h = g.height;
@@ -1085,7 +1038,6 @@ public final class PostFX {
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-
                 int index = y * w + x;
                 int center = source[index];
 
@@ -1124,7 +1076,7 @@ public final class PostFX {
                 }
 
                 if (edge) {
-                    pixels[index] = outlineColor;
+                    g.pixels[index] = outlineColor;
                 }
             }
         }
