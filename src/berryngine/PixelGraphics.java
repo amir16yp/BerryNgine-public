@@ -658,6 +658,11 @@ public class PixelGraphics {
         return getSubImage(pos.x, pos.y, size.x, size.y);
     }
 
+    public PixelGraphics getSubImage(Vec2 pos, Vec2 size)
+    {
+        return getSubImage((int) pos.x, (int) pos.y, (int) size.x, (int) size.y);
+    }
+
     public void drawTaperedLine(
             float x1, float y1,
             float x2, float y2,
@@ -935,62 +940,118 @@ public class PixelGraphics {
         }
     }
 
-    // --- IVec2 Overloads ---
+    // --- IVec2 / Vec2 Overloads ---
 
     public void setPixel(IVec2 p, int color) {
         setPixel(p.x, p.y, color);
+    }
+
+    public void setPixel(Vec2 p, int color) {
+        setPixel((int) p.x, (int) p.y, color);
     }
 
     public int getPixel(IVec2 p) {
         return getPixel(p.x, p.y);
     }
 
+    public int getPixel(Vec2 p) {
+        return getPixel((int) p.x, (int) p.y);
+    }
+
     public void blendPixel(IVec2 p, int srcColor) {
         blendPixel(p.x, p.y, srcColor);
+    }
+
+    public void blendPixel(Vec2 p, int srcColor) {
+        blendPixel((int) p.x, (int) p.y, srcColor);
     }
 
     public void blendPixelGlobal(IVec2 p, int srcColor) {
         blendPixelGlobal(p.x, p.y, srcColor);
     }
 
+    public void blendPixelGlobal(Vec2 p, int srcColor) {
+        blendPixelGlobal((int) p.x, (int) p.y, srcColor);
+    }
+
     public void drawLine(IVec2 p1, IVec2 p2, int color) {
         drawLine(p1.x, p1.y, p2.x, p2.y, color);
+    }
+
+    public void drawLine(Vec2 p1, Vec2 p2, int color) {
+        drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y, color);
     }
 
     public void drawTaperedLine(IVec2 p1, IVec2 p2, float width, int color) {
         drawTaperedLine(p1.x, p1.y, p2.x, p2.y, width, color);
     }
 
+    public void drawTaperedLine(Vec2 p1, Vec2 p2, float width, int color) {
+        drawTaperedLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y, width, color);
+    }
+
     public void drawHorizontalLine(IVec2 p, int width, int color) {
         drawHorizontalLine(p.x, p.y, width, color);
+    }
+
+    public void drawHorizontalLine(Vec2 p, int width, int color) {
+        drawHorizontalLine((int) p.x, (int) p.y, width, color);
     }
 
     public void drawVLine(IVec2 p, int y2, int color) {
         drawVLine(p.x, p.y, y2, color);
     }
 
+    public void drawVLine(Vec2 p, int y2, int color) {
+        drawVLine((int) p.x, (int) p.y, y2, color);
+    }
+
     public void drawRect(IVec2 p, int w, int h, int color) {
         drawRect(p.x, p.y, w, h, color);
+    }
+
+    public void drawRect(Vec2 p, int w, int h, int color) {
+        drawRect((int) p.x, (int) p.y, w, h, color);
     }
 
     public void fillRect(IVec2 p, int w, int h, int color) {
         fillRect(p.x, p.y, w, h, color);
     }
 
+    public void fillRect(Vec2 p, int w, int h, int color) {
+        fillRect((int) p.x, (int) p.y, w, h, color);
+    }
+
     public void fillRectBlended(IVec2 p, int w, int h, int color) {
         fillRectBlended(p.x, p.y, w, h, color);
+    }
+
+    public void fillRectBlended(Vec2 p, int w, int h, int color) {
+        fillRectBlended((int) p.x, (int) p.y, w, h, color);
     }
 
     public void fillRect(IVec2 p, int w, int h, Paint paint) {
         fillRect(p.x, p.y, w, h, paint);
     }
 
+    public void fillRect(Vec2 p, int w, int h, Paint paint) {
+        fillRect((int) p.x, (int) p.y, w, h, paint);
+    }
+
     public void fillGradientRect(IVec2 p, int w, int h, int color1, int color2, boolean horizontal) {
         fillGradientRect(p.x, p.y, w, h, color1, color2, horizontal);
     }
 
+    public void fillGradientRect(Vec2 p, int w, int h, int color1, int color2, boolean horizontal) {
+        fillGradientRect((int) p.x, (int) p.y, w, h, color1, color2, horizontal);
+    }
+
     public void drawImage(int[] srcPixels, int srcW, int srcH, IVec2 p) {
         drawImage(srcPixels, srcW, srcH, p.x, p.y);
+    }
+
+    public void drawImage(int[] srcPixels, int srcW, int srcH, Vec2 p) {
+        drawImage(srcPixels, srcW, srcH, (int) p.x, (int) p.y);
     }
 
     public void drawImage(int[] srcPixels, IVec2 srcSize, IVec2 p)
@@ -998,71 +1059,144 @@ public class PixelGraphics {
         drawImage(srcPixels, srcSize.x, srcSize.y, p.x, p.y);
     }
 
+    public void drawImage(int[] srcPixels, Vec2 srcSize, Vec2 p)
+    {
+        drawImage(srcPixels, (int) srcSize.x, (int) srcSize.y, (int) p.x, (int) p.y);
+    }
+
     public void drawImage(PixelGraphics src, IVec2 p) {
         drawImage(src, p.x, p.y);
+    }
+
+    public void drawImage(PixelGraphics src, Vec2 p) {
+        drawImage(src, (int) p.x, (int) p.y);
     }
 
     public void drawImageBlended(int[] srcPixels, int srcW, int srcH, IVec2 p) {
         drawImageBlended(srcPixels, srcW, srcH, p.x, p.y);
     }
 
+    public void drawImageBlended(int[] srcPixels, int srcW, int srcH, Vec2 p) {
+        drawImageBlended(srcPixels, srcW, srcH, (int) p.x, (int) p.y);
+    }
+
     public void drawImageBlended(PixelGraphics src, IVec2 p) {
         drawImageBlended(src, p.x, p.y);
+    }
+
+    public void drawImageBlended(PixelGraphics src, Vec2 p) {
+        drawImageBlended(src, (int) p.x, (int) p.y);
     }
 
     public void drawImageTinted(int[] srcPixels, int srcW, int srcH, IVec2 p, int tint) {
         drawImageTinted(srcPixels, srcW, srcH, p.x, p.y, tint);
     }
 
+    public void drawImageTinted(int[] srcPixels, int srcW, int srcH, Vec2 p, int tint) {
+        drawImageTinted(srcPixels, srcW, srcH, (int) p.x, (int) p.y, tint);
+    }
+
     public void drawImageTinted(PixelGraphics src, IVec2 p, int tint) {
         drawImageTinted(src, p.x, p.y, tint);
+    }
+
+    public void drawImageTinted(PixelGraphics src, Vec2 p, int tint) {
+        drawImageTinted(src, (int) p.x, (int) p.y, tint);
     }
 
     public void drawImageFlipped(int[] srcPixels, int srcW, int srcH, IVec2 p, boolean flipH, boolean flipV) {
         drawImageFlipped(srcPixels, srcW, srcH, p.x, p.y, flipH, flipV);
     }
 
+    public void drawImageFlipped(int[] srcPixels, int srcW, int srcH, Vec2 p, boolean flipH, boolean flipV) {
+        drawImageFlipped(srcPixels, srcW, srcH, (int) p.x, (int) p.y, flipH, flipV);
+    }
+
     public void drawImageFlipped(PixelGraphics src, IVec2 p, boolean flipH, boolean flipV) {
         drawImageFlipped(src, p.x, p.y, flipH, flipV);
+    }
+
+    public void drawImageFlipped(PixelGraphics src, Vec2 p, boolean flipH, boolean flipV) {
+        drawImageFlipped(src, (int) p.x, (int) p.y, flipH, flipV);
     }
 
     public void drawImageScaled(int[] srcPixels, int srcW, int srcH, IVec2 p, int dstW, int dstH) {
         drawImageScaled(srcPixels, srcW, srcH, p.x, p.y, dstW, dstH);
     }
 
+    public void drawImageScaled(int[] srcPixels, int srcW, int srcH, Vec2 p, int dstW, int dstH) {
+        drawImageScaled(srcPixels, srcW, srcH, (int) p.x, (int) p.y, dstW, dstH);
+    }
+
     public void drawImageScaledBlended(int[] srcPixels, int srcW, int srcH, IVec2 p, int dstW, int dstH) {
         drawImageScaledBlended(srcPixels, srcW, srcH, p.x, p.y, dstW, dstH);
+    }
+
+    public void drawImageScaledBlended(int[] srcPixels, int srcW, int srcH, Vec2 p, int dstW, int dstH) {
+        drawImageScaledBlended(srcPixels, srcW, srcH, (int) p.x, (int) p.y, dstW, dstH);
     }
 
     public void setClip(IVec2 p, int w, int h) {
         setClip(p.x, p.y, w, h);
     }
 
+    public void setClip(Vec2 p, int w, int h) {
+        setClip((int) p.x, (int) p.y, w, h);
+    }
+
     public PixelGraphics getSubImage(IVec2 p, int w, int h) {
         return getSubImage(p.x, p.y, w, h);
+    }
+
+    public PixelGraphics getSubImage(Vec2 p, int w, int h) {
+        return getSubImage((int) p.x, (int) p.y, w, h);
     }
 
     public void renderChar(BitmapFont font, int ch, IVec2 p, int color) {
         renderChar(font, ch, p.x, p.y, color);
     }
 
+    public void renderChar(BitmapFont font, int ch, Vec2 p, int color) {
+        renderChar(font, ch, (int) p.x, (int) p.y, color);
+    }
+
     public void renderString(BitmapFont font, String text, IVec2 p, int color) {
         renderString(font, text, p.x, p.y, color);
+    }
+
+    public void renderString(BitmapFont font, String text, Vec2 p, int color) {
+        renderString(font, text, (int) p.x, (int) p.y, color);
     }
 
     public void renderString(BitmapFont font, String text, IVec2 p, int textColor, int backgroundColor) {
         renderString(font, text, p.x, p.y, textColor, backgroundColor);
     }
 
+    public void renderString(BitmapFont font, String text, Vec2 p, int textColor, int backgroundColor) {
+        renderString(font, text, (int) p.x, (int) p.y, textColor, backgroundColor);
+    }
+
     public void renderString(SpriteSheetFont font, String text, IVec2 p, int color) {
         renderString(font, text, p.x, p.y, color);
+    }
+
+    public void renderString(SpriteSheetFont font, String text, Vec2 p, int color) {
+        renderString(font, text, (int) p.x, (int) p.y, color);
     }
 
     public void renderString(BitmapFont font, String text, IVec2 p, int color, int backgroundColor, int scale) {
         renderString(font, text, p.x, p.y, color, backgroundColor, scale);
     }
 
+    public void renderString(BitmapFont font, String text, Vec2 p, int color, int backgroundColor, int scale) {
+        renderString(font, text, (int) p.x, (int) p.y, color, backgroundColor, scale);
+    }
+
     public void renderString(SpriteSheetFont font, String text, IVec2 p, int color, int scale) {
         renderString(font, text, p.x, p.y, color, scale);
+    }
+
+    public void renderString(SpriteSheetFont font, String text, Vec2 p, int color, int scale) {
+        renderString(font, text, (int) p.x, (int) p.y, color, scale);
     }
 }
