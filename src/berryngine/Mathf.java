@@ -105,11 +105,11 @@ public final class Mathf {
    * @param x X coordinate
    * @return Approximate arctangent in radians
    */
-public static float atan2(float y, float x) {
+  public static float atan2(float y, float x) {
     if (x == 0.0f) {
-        if (y > 0.0f) return PI / 2.0f;
-        if (y < 0.0f) return -PI / 2.0f;
-        return 0.0f;
+      if (y > 0.0f) return PI / 2.0f;
+      if (y < 0.0f) return -PI / 2.0f;
+      return 0.0f;
     }
 
     float z = y / x;
@@ -117,18 +117,17 @@ public static float atan2(float y, float x) {
 
     float angle;
     if (absZ <= 1.0f) {
-        angle = absZ / (1.0f + 0.28f * absZ * absZ);
+      angle = absZ / (1.0f + 0.28f * absZ * absZ);
     } else {
-        angle = PI / 2.0f
-              - absZ / (absZ * absZ + 0.28f);
+      angle = PI / 2.0f - absZ / (absZ * absZ + 0.28f);
     }
 
     if (x < 0.0f) {
-        angle = PI - angle;
+      angle = PI - angle;
     }
 
     return y < 0.0f ? -angle : angle;
-}
+  }
 
   /**
    * Converts degrees to radians
