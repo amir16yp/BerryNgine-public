@@ -254,4 +254,208 @@ public final class Color {
                 throw new IllegalArgumentException("Invalid hex color: " + hex);
         }
     }
+
+    
+    // =========================================================
+    // HSB / HSV EXTRACTION
+    // Hue: 0..1, Saturation: 0..1, Brightness: 0..1
+    // =========================================================
+
+    public static float getHueHSB(int color) {
+        float r = getRed(color) / 255f;
+        float g = getGreen(color) / 255f;
+        float b = getBlue(color) / 255f;
+
+        float max = Math.max(r, Math.max(g, b));
+        float min = Math.min(r, Math.min(g, b));
+        float delta = max - min;
+
+        if (delta == 0f) return 0f;
+
+        float hue;
+        if (max == r) {
+            hue = ((g - b) / delta) % 6f;
+        } else if (max == g) {
+            hue = (b - r) / delta + 2f;
+        } else {
+            hue = (r - g) / delta + 4f;
+        }
+
+        hue /= 6f;
+        return hue < 0f ? hue + 1f : hue;
+    }
+
+    public static float getSaturationHSB(int color) {
+        float r = getRed(color) / 255f;
+        float g = getGreen(color) / 255f;
+        float b = getBlue(color) / 255f;
+
+        float max = Math.max(r, Math.max(g, b));
+        float min = Math.min(r, Math.min(g, b));
+
+        return max == 0f ? 0f : (max - min) / max;
+    }
+
+    public static float getBrightnessHSB(int color) {
+        return Math.max(
+                getRed(color),
+                Math.max(getGreen(color), getBlue(color))
+        ) / 255f;
+    }
+
+    // =========================================================
+    // HSL -> RGB
+    // Hue: 0..1, Saturation: 0..1, Lightness: 0..1
+    // =========================================================
+
+    public static int fromHSL(float hue, float saturation, float lightness) {
+        hue = hue - (float) Math.floor(hue);
+        saturation = Mathf.clamp01(saturation);
+        lightness = Mathf.clamp01(lightness);
+
+        float r, g, b;
+
+        if (saturation == 0f) {
+            r = g = b = lightness;
+        } else {
+            float q = lightness < 0.5f
+                    ? lightness * (1f + saturation)
+                    : lightness + saturation - lightness * saturation;
+
+            float p = 2f * lightness - q;
+
+            r = hueToRGB(p, q, hue + 1f / 3f);
+            g = hueToRGB(p, q, hue);
+            b = hueToRGB(p, q, hue - 1f / 3f);
+        }
+
+        return fromRGBA(
+                Math.round(r * 255f),
+                Math.round(g * 255f),
+                Math.round(b * 255f),
+                255
+        );
+    }
+
+    private static float hueToRGB(float p, float q, float t) {
+        if (t < 0f) t += 1f;
+        if (t > 1f) t -= 1f;
+
+        if (t < 1f / 6f) return p + (q - p) * 6f * t;
+        if (t < 1f / 2f) return q;
+        if (t < 2f / 3f) return p + (q - p) * (2f / 3f - t) * 6f;
+
+        return p;
+    }
+
+    // =========================================================
+    // RGB -> HSL EXTRACTION
+    // Hue: 0..1, Saturation: 0..1, Lightness: 0..1
+    // =========================================================
+
+    public static float getHueHSL(int color) {
+        return getHueHSB(color);
+    }
+
+    public static float getSaturationHSL(int color) {
+        float r = getRed(color) / 255f;
+        float g = getGreen(color) / 255f;
+        float b = getBlue(color) / 255f;
+
+        float max = Math.max(r, Math.max(g, b));
+        float min = Math.min(r, Math.min(g, b));
+        float delta = max - min;
+        float lightness = (max + min) / 2f;
+
+        if (delta == 0f) return 0f;
+
+        return delta / (1f - Math.abs(2f * lightness - 1f));
+    }
+
+    public static float getLightnessHSL(int color) {
+        float r = getRed(color) / 255f;
+        float g = getGreen(color) / 255f;
+        float b = getBlue(color) / 255f;
+
+        float max = Math.max(r, Math.max(g, b));
+        float min = Math.min(r, Math.min(g, b));
+
+        return (max + min) / 2f;
+    }
+
+    // =========================================================
+    // COLOR MODEL CONVENIENCE METHODS
+    // =========================================================
+
+    public static int withHueHSB(int color, float hue) {
+        return fromHSB(
+                hue,
+                getSaturationHSB(color),
+                getBrightnessHSB(color)
+        );
+    }
+
+    public static int withSaturationHSB(int color, float saturation) {
+        return fromHSB(
+                getHueHSB(color),
+                Mathf.clamp01(saturation),
+                getBrightnessHSB(color)
+        );
+    }
+
+    public static int withBrightnessHSB(int color, float brightness) {
+        return fromHSB(
+                getHueHSB(color),
+                getSaturationHSB(color),
+                Mathf.clamp01(brightness)
+        );
+    }
+
+    public static int withHueHSL(int color, float hue) {
+        return fromHSL(
+                hue,
+                getSaturationHSL(color),
+                getLightnessHSL(color)
+        );
+    }
+
+    public static int withSaturationHSL(int color, float saturation) {
+        return fromHSL(
+                getHueHSL(color),
+                Mathf.clamp01(saturation),
+                getLightnessHSL(color)
+        );
+    }
+
+    public static int withLightnessHSL(int color, float lightness) {
+        return fromHSL(
+                getHueHSL(color),
+                getSaturationHSL(color),
+                Mathf.clamp01(lightness)
+        );
+    }
+
+    public static int lighten(int color, float amount) {
+        return withLightnessHSL(
+                color,
+                Mathf.clamp01(getLightnessHSL(color) + amount)
+        );
+    }
+
+    public static int darken(int color, float amount) {
+        return withLightnessHSL(
+                color,
+                Mathf.clamp01(getLightnessHSL(color) - amount)
+        );
+    }
+
+    public static int grayscale(int color) {
+        int gray = Math.round(
+                0.299f * getRed(color)
+              + 0.587f * getGreen(color)
+              + 0.114f * getBlue(color)
+        );
+
+        return fromRGBA(gray, gray, gray, getAlpha(color));
+    }
 }
