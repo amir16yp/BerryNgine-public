@@ -2,165 +2,165 @@ package berryngine;
 
 public final class GameLoop implements Runnable {
 
-    private final GameWindow window;
+  private final GameWindow window;
 
-    private volatile boolean running = true;
+  private volatile boolean running = true;
 
-    private long lastTime;
+  private long lastTime;
 
-    private float deltaTime;
-    private float timeScale = 1.0f;
+  private float deltaTime;
+  private float timeScale = 1.0f;
 
-    // Fixed-timestep
-    private float fixedStep = 1f / 60f;
-    private int fixedHz = 60;
-    private float accumulator = 0f;
+  // Fixed-timestep
+  private float fixedStep = 1f / 60f;
+  private int fixedHz = 60;
+  private float accumulator = 0f;
 
-    // Frame cap (0 = uncapped)
-    private int targetFps = 0;
-    private long targetFrameNs = 0L;
+  // Frame cap (0 = uncapped)
+  private int targetFps = 0;
+  private long targetFrameNs = 0L;
 
-    // Max dt clamp — prevents spiral of death after debugger pause
-    private float maxDeltaTime = 1f / 15f;
+  // Max dt clamp — prevents spiral of death after debugger pause
+  private float maxDeltaTime = 1f / 15f;
 
-    // FPS tracking
-    private long fps;
-    private long frameCount;
-    private long fpsTimer;
+  // FPS tracking
+  private long fps;
+  private long frameCount;
+  private long fpsTimer;
 
-    public GameLoop(GameWindow window) {
-        this.window = window;
-    }
+  public GameLoop(GameWindow window) {
+    this.window = window;
+  }
 
-    public void start() {
-        new Thread(this, "GameLoop").start();
-    }
+  public void start() {
+    new Thread(this, "GameLoop").start();
+  }
 
-    @Override
-    public void run() {
-        try {
-        lastTime = System.nanoTime();
-        fpsTimer = System.nanoTime();
+  @Override
+  public void run() {
+    try {
+      lastTime = System.nanoTime();
+      fpsTimer = System.nanoTime();
 
-        while (running) {
+      while (running) {
 
-            long now = System.nanoTime();
+        long now = System.nanoTime();
 
-            // ---------------- delta time ----------------
-            deltaTime = (now - lastTime) / 1_000_000_000f;
-            if (deltaTime > maxDeltaTime) deltaTime = maxDeltaTime;
-            lastTime = now;
+        // ---------------- delta time ----------------
+        deltaTime = (now - lastTime) / 1_000_000_000f;
+        if (deltaTime > maxDeltaTime) deltaTime = maxDeltaTime;
+        lastTime = now;
 
-            float scaledDt = deltaTime * timeScale;
+        float scaledDt = deltaTime * timeScale;
 
-            if (window.isMouseCaptured()) {
-                java.awt.Point center = window.getScreenCenter();
-                if (center != null) {
-                    java.awt.Point cur = java.awt.MouseInfo.getPointerInfo().getLocation();
-                    Input.setRawMouseDelta(cur.x - center.x, cur.y - center.y);
-                    window.warpToScreenCenter();
-                }
-            }
-            Input.poll();
-            // ---------------- fixed update ----------------
-            accumulator += scaledDt;
-            while (accumulator >= fixedStep) {
-                window.sceneManager.fixedUpdate(fixedStep);
-                accumulator -= fixedStep;
-            }
-            // ---------------- update/render ----------------
-            window.sceneManager.update(scaledDt);
-            window.audioMixer.cleanup();
-
-            ThreadedPixelGraphics graphics = window.getGraphicsAPI();
-            graphics.update(scaledDt);
-            graphics.beginFrame();
-            window.sceneManager.render(graphics);
-            graphics.renderCursor();
-            graphics.execute();
-            window.present();
-
-            // ---------------- FPS tracking ----------------
-            frameCount++;
-
-            if (now - fpsTimer >= 1_000_000_000L) {
-                fps = frameCount;
-                frameCount = 0;
-                fpsTimer = now;
-            }
-
-            // ---------------- frame cap ----------------
-            if (targetFrameNs > 0) {
-                long elapsed = System.nanoTime() - now;
-                long sleepNs = targetFrameNs - elapsed;
-                if (sleepNs > 1_000_000L) {
-                    try {
-                        Thread.sleep(sleepNs / 1_000_000L);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            }
+        if (window.isMouseCaptured()) {
+          java.awt.Point center = window.getScreenCenter();
+          if (center != null) {
+            java.awt.Point cur = java.awt.MouseInfo.getPointerInfo().getLocation();
+            Input.setRawMouseDelta(cur.x - center.x, cur.y - center.y);
+            window.warpToScreenCenter();
+          }
         }
-        } finally {
-            window.audioMixer.close();
-            window.soundSystem.close();
-            window.getGraphicsAPI().close();
+        Input.poll();
+        // ---------------- fixed update ----------------
+        accumulator += scaledDt;
+        while (accumulator >= fixedStep) {
+          window.sceneManager.fixedUpdate(fixedStep);
+          accumulator -= fixedStep;
         }
-    }
+        // ---------------- update/render ----------------
+        window.sceneManager.update(scaledDt);
+        window.audioMixer.cleanup();
 
-    // ---------------- API ----------------
+        ThreadedPixelGraphics graphics = window.getGraphicsAPI();
+        graphics.update(scaledDt);
+        graphics.beginFrame();
+        window.sceneManager.render(graphics);
+        graphics.renderCursor();
+        graphics.execute();
+        window.present();
 
-    public float getDeltaTime() {
-        return deltaTime * timeScale;
-    }
+        // ---------------- FPS tracking ----------------
+        frameCount++;
 
-    public float getRawDeltaTime() {
-        return deltaTime;
-    }
+        if (now - fpsTimer >= 1_000_000_000L) {
+          fps = frameCount;
+          frameCount = 0;
+          fpsTimer = now;
+        }
 
-    public long getFps() {
-        return fps;
+        // ---------------- frame cap ----------------
+        if (targetFrameNs > 0) {
+          long elapsed = System.nanoTime() - now;
+          long sleepNs = targetFrameNs - elapsed;
+          if (sleepNs > 1_000_000L) {
+            try {
+              Thread.sleep(sleepNs / 1_000_000L);
+            } catch (InterruptedException ignored) {
+            }
+          }
+        }
+      }
+    } finally {
+      window.audioMixer.close();
+      window.soundSystem.close();
+      window.getGraphicsAPI().close();
     }
+  }
 
-    public void setTimeScale(float scale) {
-        this.timeScale = scale;
-    }
+  // ---------------- API ----------------
 
-    public float getTimeScale() {
-        return timeScale;
-    }
+  public float getDeltaTime() {
+    return deltaTime * timeScale;
+  }
 
-    public void setTargetFps(int fps) {
-        this.targetFps = fps;
-        this.targetFrameNs = fps > 0 ? 1_000_000_000L / fps : 0L;
-    }
+  public float getRawDeltaTime() {
+    return deltaTime;
+  }
 
-    public int getTargetFps() {
-        return targetFps;
-    }
+  public long getFps() {
+    return fps;
+  }
 
-    public void setFixedHz(int hz) {
-        this.fixedHz = hz;
-        this.fixedStep = hz > 0 ? 1f / hz : 1f / 60f;
-    }
+  public void setTimeScale(float scale) {
+    this.timeScale = scale;
+  }
 
-    public int getFixedHz() {
-        return fixedHz;
-    }
+  public float getTimeScale() {
+    return timeScale;
+  }
 
-    public float getFixedStep() {
-        return fixedStep;
-    }
+  public void setTargetFps(int fps) {
+    this.targetFps = fps;
+    this.targetFrameNs = fps > 0 ? 1_000_000_000L / fps : 0L;
+  }
 
-    public void setMaxDeltaTime(float max) {
-        this.maxDeltaTime = max;
-    }
+  public int getTargetFps() {
+    return targetFps;
+  }
 
-    public float getMaxDeltaTime() {
-        return maxDeltaTime;
-    }
+  public void setFixedHz(int hz) {
+    this.fixedHz = hz;
+    this.fixedStep = hz > 0 ? 1f / hz : 1f / 60f;
+  }
 
-    public void stop() {
-        running = false;
-    }
+  public int getFixedHz() {
+    return fixedHz;
+  }
+
+  public float getFixedStep() {
+    return fixedStep;
+  }
+
+  public void setMaxDeltaTime(float max) {
+    this.maxDeltaTime = max;
+  }
+
+  public float getMaxDeltaTime() {
+    return maxDeltaTime;
+  }
+
+  public void stop() {
+    running = false;
+  }
 }
