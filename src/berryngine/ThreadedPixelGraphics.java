@@ -328,9 +328,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
         tile -> {
           for (int row = Math.max(start, tile.y0); row <= Math.min(end, tile.y1 - 1); row++)
             tile.put(
-                x,
-                row,
-                Color.lerp(topColor, bottomColor, (float) (row - start) / (end - start)));
+                x, row, Color.lerp(topColor, bottomColor, (float) (row - start) / (end - start)));
         });
   }
 

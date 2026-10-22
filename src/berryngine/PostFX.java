@@ -225,9 +225,7 @@ public final class PostFX {
       int gr = Color.getGreen(c);
       int b = Color.getBlue(c);
 
-      if (Math.abs(r - fr) <= tol
-          && Math.abs(gr - fg) <= tol
-          && Math.abs(b - fb) <= tol) {
+      if (Math.abs(r - fr) <= tol && Math.abs(gr - fg) <= tol && Math.abs(b - fb) <= tol) {
 
         g.pixels[i] =
             Color.fromRGBA(

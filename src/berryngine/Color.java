@@ -418,7 +418,10 @@ public final class Color {
     return fromRGBA(gray, gray, gray, getAlpha(color));
   }
 
-  /** Nearest palette entry by RGB squared distance. Alpha of {@code color} is preserved by the caller. */
+  /**
+   * Nearest palette entry by RGB squared distance. Alpha of {@code color} is preserved by the
+   * caller.
+   */
   public static int nearest(int color, int[] palette) {
     if (palette == null || palette.length == 0) {
       return color;
