@@ -195,34 +195,68 @@ public final class Color {
   // BLENDING / INTERPOLATION
   // =========================================================
 
+  /** {@code t} in 0..1; converts to Q8 and lerps channels with integer math. */
   public static int lerp(int c1, int c2, float t) {
-    t = Mathf.clamp01(t);
+    return lerp255(c1, c2, (int) (Mathf.clamp01(t) * 255f + 0.5f));
+  }
+
+  /** {@code t} in 0..255 (0 = c1, 255 = c2). */
+  public static int lerp255(int c1, int c2, int t) {
+    t = Mathf.clamp(t, 0, 255);
 
     int a1 = getAlpha(c1), r1 = getRed(c1), g1 = getGreen(c1), b1 = getBlue(c1);
     int a2 = getAlpha(c2), r2 = getRed(c2), g2 = getGreen(c2), b2 = getBlue(c2);
 
-    int a = (int) (a1 + (a2 - a1) * t);
-    int r = (int) (r1 + (r2 - r1) * t);
-    int g = (int) (g1 + (g2 - g1) * t);
-    int b = (int) (b1 + (b2 - b1) * t);
+    int a = a1 + ((a2 - a1) * t) / 255;
+    int r = r1 + ((r2 - r1) * t) / 255;
+    int g = g1 + ((g2 - g1) * t) / 255;
+    int b = b1 + ((b2 - b1) * t) / 255;
 
     return fromRGBA(r, g, b, a);
   }
 
+  /** Step {@code i} of {@code steps} (inclusive endpoints when {@code i} is 0..steps). */
+  public static int lerpSteps(int c1, int c2, int i, int steps) {
+    if (steps <= 0) {
+      return c1;
+    }
+    return lerp255(c1, c2, (i * 255) / steps);
+  }
+
+  /** {@code factor} 1.0 = unchanged; uses Q8 ({@code 256 = 1.0}). */
   public static int multiply(int color, float factor) {
-    int r = (int) (getRed(color) * factor);
-    int g = (int) (getGreen(color) * factor);
-    int b = (int) (getBlue(color) * factor);
+    if (factor <= 0f) {
+      return fromRGBA(0, 0, 0, getAlpha(color));
+    }
+    return multiply256(color, (int) (factor * 256f + 0.5f));
+  }
+
+  /** Fixed-point multiply: {@code factor256 == 256} means 1.0. */
+  public static int multiply256(int color, int factor256) {
+    if (factor256 <= 0) {
+      return fromRGBA(0, 0, 0, getAlpha(color));
+    }
+
+    int r = Mathf.clamp((getRed(color) * factor256) >> 8, 0, 255);
+    int g = Mathf.clamp((getGreen(color) * factor256) >> 8, 0, 255);
+    int b = Mathf.clamp((getBlue(color) * factor256) >> 8, 0, 255);
 
     return fromRGBA(r, g, b, getAlpha(color));
   }
 
   public static int blend(int src, int dst) {
-    float a = getAlpha(src) / 255f;
+    int a = getAlpha(src);
+    if (a == 0) {
+      return fromRGB(getRed(dst), getGreen(dst), getBlue(dst));
+    }
+    if (a == 255) {
+      return fromRGB(getRed(src), getGreen(src), getBlue(src));
+    }
 
-    int r = (int) (getRed(src) * a + getRed(dst) * (1 - a));
-    int g = (int) (getGreen(src) * a + getGreen(dst) * (1 - a));
-    int b = (int) (getBlue(src) * a + getBlue(dst) * (1 - a));
+    int inv = 255 - a;
+    int r = (getRed(src) * a + getRed(dst) * inv) / 255;
+    int g = (getGreen(src) * a + getGreen(dst) * inv) / 255;
+    int b = (getBlue(src) * a + getBlue(dst) * inv) / 255;
 
     return fromRGB(r, g, b);
   }

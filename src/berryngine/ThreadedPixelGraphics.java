@@ -135,7 +135,8 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
   private final Camera2D camera = new Camera2D();
   private Cursor cursor;
   private int clipX0, clipY0, clipX1, clipY1;
-  private float alpha = 1f;
+  /** Global alpha as 0..255 (255 = opaque). */
+  private int alpha = 255;
 
   public ThreadedPixelGraphics(int[] pixels, int width, int height, int threads) {
     super(pixels, width, height);
@@ -194,15 +195,15 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
   public void beginFrame() {
     commands.clear();
     clearClip();
-    alpha = 1f;
+    alpha = 255;
   }
 
   public void setGlobalAlpha(float value) {
-    alpha = Math.max(0f, Math.min(1f, value));
+    alpha = (int) (Math.max(0f, Math.min(1f, value)) * 255f + 0.5f);
   }
 
   public float getGlobalAlpha() {
-    return alpha;
+    return alpha / 255f;
   }
 
   public void setClip(int x, int y, int w, int h) {
@@ -289,7 +290,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
 
   @Override
   public void blendPixelGlobal(int x, int y, int color) {
-    int sourceAlpha = (int) ((color >>> 24) * alpha);
+    int sourceAlpha = ((color >>> 24) * alpha) / 255;
     blendPixel(x, y, (color & 0x00ffffff) | sourceAlpha << 24);
   }
 
@@ -306,15 +307,17 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
     int x0 = Math.max(x, clipX0), y0 = Math.max(y, clipY0);
     int x1 = Math.min(x + w, clipX1), y1 = Math.min(y + h, clipY1);
     if (x0 >= x1 || y0 >= y1) return;
+    int xSpan = Math.max(1, x1 - x0 - 1);
+    int ySpan = Math.max(1, y1 - y0 - 1);
     commands.add(
         tile -> {
           for (int row = Math.max(y0, tile.y0); row < Math.min(y1, tile.y1); row++) {
             for (int col = x0; col < x1; col++) {
-              float t =
+              int color =
                   horizontal
-                      ? (x1 - x0 <= 1 ? 0f : (float) (col - x0) / (x1 - x0 - 1))
-                      : (y1 - y0 <= 1 ? 0f : (float) (row - y0) / (y1 - y0 - 1));
-              tile.put(col, row, Color.lerp(color1, color2, t));
+                      ? Color.lerpSteps(color1, color2, col - x0, xSpan)
+                      : Color.lerpSteps(color1, color2, row - y0, ySpan);
+              tile.put(col, row, color);
             }
           }
         });
@@ -324,11 +327,11 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
     int start = Math.max(clipY0, Math.min(y0, y1));
     int end = Math.min(clipY1 - 1, Math.max(y0, y1));
     if (x < clipX0 || x >= clipX1 || start >= end) return;
+    int span = end - start;
     commands.add(
         tile -> {
           for (int row = Math.max(start, tile.y0); row <= Math.min(end, tile.y1 - 1); row++)
-            tile.put(
-                x, row, Color.lerp(topColor, bottomColor, (float) (row - start) / (end - start)));
+            tile.put(x, row, Color.lerpSteps(topColor, bottomColor, row - start, span));
         });
   }
 
@@ -513,7 +516,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
     if (source == null || sw <= 0 || sh <= 0 || w <= 0 || h <= 0) return;
     int x0 = Math.max(x, clipX0), y0 = Math.max(y, clipY0);
     int x1 = Math.min(x + w, clipX1), y1 = Math.min(y + h, clipY1);
-    float opacity = alpha;
+    int opacity = alpha;
     commands.add(
         tile -> {
           for (int row = Math.max(y0, tile.y0); row < Math.min(y1, tile.y1); row++) {
@@ -521,7 +524,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
             for (int col = x0; col < x1; col++) {
               int sx = (int) ((long) (col - x) * sw / w);
               int color = source[sy * sw + sx];
-              int a = (int) ((color >>> 24) * opacity);
+              int a = ((color >>> 24) * opacity) / 255;
               if (a == 0) continue;
               color = (color & 0x00ffffff) | a << 24;
               if (blended) tile.blend(col, row, color);

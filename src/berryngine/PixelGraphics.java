@@ -13,7 +13,8 @@ public class PixelGraphics {
   public int width;
   public int height;
   private IVec2 size;
-  private float globalAlpha = 1.0f;
+  /** Global alpha as 0..255 (255 = opaque). */
+  private int globalAlpha = 255;
 
   public IVec2 getSize() {
     if (size == null) {
@@ -81,10 +82,9 @@ public class PixelGraphics {
 
     if (horizontal) {
       // LEFT → RIGHT gradient
+      int span = Math.max(1, renderW - 1);
       for (int i = 0; i < renderW; i++) {
-
-        float t = (renderW <= 1) ? 0f : (float) i / (renderW - 1);
-        int color = Color.lerp(color1, color2, t);
+        int color = Color.lerpSteps(color1, color2, i, span);
 
         int rowOffset = (yStart * this.width) + (xStart + i);
 
@@ -95,10 +95,9 @@ public class PixelGraphics {
 
     } else {
       // TOP → BOTTOM gradient
+      int span = Math.max(1, renderH - 1);
       for (int j = 0; j < renderH; j++) {
-
-        float t = (renderH <= 1) ? 0f : (float) j / (renderH - 1);
-        int color = Color.lerp(color1, color2, t);
+        int color = Color.lerpSteps(color1, color2, j, span);
 
         int offset = (yStart + j) * this.width + xStart;
         int end = offset + renderW;
@@ -127,13 +126,14 @@ public class PixelGraphics {
     }
   }
 
-  /** Helper to interpolate between two ARGB sets and pack them into an int. */
+  /** Helper to interpolate between two ARGB sets; {@code t} is 0..255. */
   private int interpolate(
-      int a1, int r1, int g1, int b1, int a2, int r2, int g2, int b2, float ratio) {
-    int a = (int) (a1 + (a2 - a1) * ratio);
-    int r = (int) (r1 + (r2 - r1) * ratio);
-    int g = (int) (g1 + (g2 - g1) * ratio);
-    int b = (int) (b1 + (b2 - b1) * ratio);
+      int a1, int r1, int g1, int b1, int a2, int r2, int g2, int b2, int t) {
+    t = Mathf.clamp(t, 0, 255);
+    int a = a1 + ((a2 - a1) * t) / 255;
+    int r = r1 + ((r2 - r1) * t) / 255;
+    int g = g1 + ((g2 - g1) * t) / 255;
+    int b = b1 + ((b2 - b1) * t) / 255;
 
     return (a << 24) | (r << 16) | (g << 8) | b;
   }
@@ -250,7 +250,7 @@ public class PixelGraphics {
     int idx = y * width + x;
     int dstColor = pixels[idx];
 
-    int srcA = (int) ((srcColor >>> 24) * globalAlpha);
+    int srcA = ((srcColor >>> 24) * globalAlpha) / 255;
     if (srcA <= 0) return;
 
     // Fast path: fully opaque after global alpha
@@ -361,30 +361,36 @@ public class PixelGraphics {
 
     int offset = startY * width + x;
     for (int i = 0; i <= totalSteps; i++) {
-      float ratio = (float) i / totalSteps;
-      pixels[offset] = Color.lerp(topColor, bottomColor, ratio);
+      pixels[offset] = Color.lerpSteps(topColor, bottomColor, i, totalSteps);
       offset += width;
     }
   }
 
   public void applyVignette(int color, float strength) {
-    float centerX = width / 2.0f;
-    float centerY = height / 2.0f;
-    float maxDist = Mathf.fastSqrt(centerX * centerX + centerY * centerY) * strength;
-    if (maxDist <= 0f) return;
+    if (strength <= 0f) return;
+
+    int cx = width >> 1;
+    int cy = height >> 1;
+    int maxDist =
+        Math.max(1, (int) (Mathf.fastSqrt(cx * (float) cx + cy * (float) cy) * strength));
+    int maxDistSq = maxDist * maxDist;
 
     int vr = Color.getRed(color);
     int vg = Color.getGreen(color);
     int vb = Color.getBlue(color);
 
     for (int y = 0; y < height; y++) {
+      int dy = y - cy;
       for (int x = 0; x < width; x++) {
-        float dx = x - centerX;
-        float dy = y - centerY;
-        float dist = Mathf.fastSqrt(dx * dx + dy * dy);
+        int dx = x - cx;
+        int d2 = dx * dx + dy * dy;
 
-        float t = Math.min(1.0f, dist / maxDist);
-        int alpha = (int) (t * 180);
+        int alpha;
+        if (d2 >= maxDistSq) {
+          alpha = 180;
+        } else {
+          alpha = ((int) Mathf.fastSqrt(d2)) * 180 / maxDist;
+        }
 
         if (alpha > 0) {
           blendPixel(x, y, Color.fromRGBA(vr, vg, vb, alpha));
@@ -553,11 +559,11 @@ public class PixelGraphics {
   }
 
   public float getGlobalAlpha() {
-    return globalAlpha;
+    return globalAlpha / 255f;
   }
 
   public void setGlobalAlpha(float alpha) {
-    this.globalAlpha = Math.max(0f, Math.min(1f, alpha));
+    this.globalAlpha = (int) (Math.max(0f, Math.min(1f, alpha)) * 255f + 0.5f);
   }
 
   public void setClip(int x, int y, int w, int h) {
@@ -611,23 +617,13 @@ public class PixelGraphics {
 
     float dx = x2 - x1;
     float dy = y2 - y1;
-    float length = (float) Math.sqrt(dx * dx + dy * dy);
+    int steps = Math.max(1, (int) Math.sqrt(dx * dx + dy * dy));
 
-    if (length == 0) return;
+    for (int i = 0; i <= steps; i++) {
+      int radius = Math.max(1, (int) (width * (steps - i) / steps));
 
-    float stepX = dx / length;
-    float stepY = dy / length;
-
-    for (float i = 0; i <= length; i++) {
-
-      float t = i / length; // 0 → 1 (taper factor)
-
-      float wx = width * (1.0f - t);
-
-      int radius = Math.max(1, (int) wx);
-
-      int cx = (int) (x1 + stepX * i);
-      int cy = (int) (y1 + stepY * i);
+      int cx = (int) (x1 + dx * i / steps);
+      int cy = (int) (y1 + dy * i / steps);
 
       // stamp small circles along path
       for (int y = -radius; y <= radius; y++) {

@@ -202,9 +202,8 @@ public final class ShapeGenerator {
     if (steps == 0) steps = 1;
 
     for (int i = 0; i <= steps; i++) {
-      float t = i / (float) steps;
-      int px = (int) (ox + dx * t);
-      int py = (int) (oy + dy * t);
+      int px = ox + (dx * i) / steps;
+      int py = oy + (dy * i) / steps;
       g.fillRect(px - half, py - half, thickness, thickness, color);
     }
     return g;
@@ -238,15 +237,19 @@ public final class ShapeGenerator {
 
   public static PixelGraphics ellipse(int width, int height, int color) {
     PixelGraphics g = new PixelGraphics(width, height);
-    float cx = width / 2.0f;
-    float cy = height / 2.0f;
-    float rx = width / 2.0f;
-    float ry = height / 2.0f;
+    int cx = width / 2;
+    int cy = height / 2;
+    int rx = Math.max(1, width / 2);
+    int ry = Math.max(1, height / 2);
+    long rx2 = (long) rx * rx;
+    long ry2 = (long) ry * ry;
+    long rxy2 = rx2 * ry2;
     for (int y = 0; y < height; y++) {
+      long dy = y - cy;
+      long dy2 = dy * dy;
       for (int x = 0; x < width; x++) {
-        float dx = (x - cx) / rx;
-        float dy = (y - cy) / ry;
-        if (dx * dx + dy * dy <= 1.0f) {
+        long dx = x - cx;
+        if (dx * dx * ry2 + dy2 * rx2 <= rxy2) {
           g.setPixel(x, y, color);
         }
       }
@@ -474,15 +477,15 @@ public final class ShapeGenerator {
 
   public static PixelGraphics radialGradient(int width, int height, int center, int edge) {
     PixelGraphics g = new PixelGraphics(width, height);
-    float cx = width / 2.0f;
-    float cy = height / 2.0f;
-    float maxDist = Mathf.fastSqrt(cx * cx + cy * cy);
+    int cx = width / 2;
+    int cy = height / 2;
+    int maxDist = Math.max(1, (int) Mathf.fastSqrt(cx * (float) cx + cy * (float) cy));
     for (int y = 0; y < height; y++) {
+      int dy = y - cy;
       for (int x = 0; x < width; x++) {
-        float dx = x - cx;
-        float dy = y - cy;
-        float t = Mathf.fastSqrt(dx * dx + dy * dy) / maxDist;
-        g.setPixel(x, y, Color.lerp(center, edge, t));
+        int dx = x - cx;
+        int dist = (int) Mathf.fastSqrt(dx * dx + dy * dy);
+        g.setPixel(x, y, Color.lerp255(center, edge, (dist * 255) / maxDist));
       }
     }
     return g;
@@ -490,9 +493,9 @@ public final class ShapeGenerator {
 
   public static PixelGraphics verticalGradient(int width, int height, int top, int bottom) {
     PixelGraphics g = new PixelGraphics(width, height);
+    int span = Math.max(1, height - 1);
     for (int y = 0; y < height; y++) {
-      float t = y / (float) Math.max(1, height - 1);
-      int color = Color.lerp(top, bottom, t);
+      int color = Color.lerpSteps(top, bottom, y, span);
       g.drawHorizontalLine(0, y, width, color);
     }
     return g;
@@ -500,9 +503,9 @@ public final class ShapeGenerator {
 
   public static PixelGraphics horizontalGradient(int width, int height, int left, int right) {
     PixelGraphics g = new PixelGraphics(width, height);
+    int span = Math.max(1, width - 1);
     for (int x = 0; x < width; x++) {
-      float t = x / (float) Math.max(1, width - 1);
-      int color = Color.lerp(left, right, t);
+      int color = Color.lerpSteps(left, right, x, span);
       g.drawVLine(x, 0, height, color);
     }
     return g;
@@ -727,16 +730,14 @@ public final class ShapeGenerator {
 
   private static void fillArc(
       PixelGraphics g, int xc, int yc, int radius, float startAngle, float sweepAngle, int color) {
-    float r2 = radius * radius;
+    int r2 = radius * radius;
 
     float start = (startAngle % 360 + 360) % 360;
     float end = (start + sweepAngle);
 
     for (int y = -radius; y <= radius; y++) {
       for (int x = -radius; x <= radius; x++) {
-        float distSq = (float) (x * x + y * y);
-
-        if (distSq <= r2) {
+        if (x * x + y * y <= r2) {
           float angle = (float) Math.toDegrees(Math.atan2(y, x));
           float normalizedAngle = (angle % 360 + 360) % 360;
 
@@ -916,33 +917,36 @@ public final class ShapeGenerator {
   public static PixelGraphics ellipseRing(int width, int height, int thickness, int color) {
     PixelGraphics g = new PixelGraphics(width, height);
 
-    float cx = (width - 1) * 0.5f;
-    float cy = (height - 1) * 0.5f;
+    int cx = (width - 1) / 2;
+    int cy = (height - 1) / 2;
 
-    float rx = width * 0.5f;
-    float ry = height * 0.5f;
+    int rx = Math.max(1, width / 2);
+    int ry = Math.max(1, height / 2);
 
-    float innerRx = Math.max(0.0f, rx - thickness);
-    float innerRy = Math.max(0.0f, ry - thickness);
+    int innerRx = Math.max(0, rx - thickness);
+    int innerRy = Math.max(0, ry - thickness);
 
-    float outerRx2 = rx * rx;
-    float outerRy2 = ry * ry;
+    long outerRx2 = (long) rx * rx;
+    long outerRy2 = (long) ry * ry;
+    long outerRxy2 = outerRx2 * outerRy2;
 
-    float innerRx2 = innerRx * innerRx;
-    float innerRy2 = innerRy * innerRy;
+    long innerRx2 = (long) innerRx * innerRx;
+    long innerRy2 = (long) innerRy * innerRy;
+    long innerRxy2 = innerRx2 * innerRy2;
+    boolean hasInner = innerRx > 0 && innerRy > 0;
 
     for (int y = 0; y < height; y++) {
+      long dy = y - cy;
+      long dy2 = dy * dy;
       for (int x = 0; x < width; x++) {
+        long dx = x - cx;
+        long dx2 = dx * dx;
 
-        float dx = x - cx;
-        float dy = y - cy;
+        boolean inOuter = dx2 * outerRy2 + dy2 * outerRx2 <= outerRxy2;
+        boolean outsideInner =
+            !hasInner || dx2 * innerRy2 + dy2 * innerRx2 >= innerRxy2;
 
-        float outer = (dx * dx) / outerRx2 + (dy * dy) / outerRy2;
-
-        float inner =
-            innerRx > 0.0f && innerRy > 0.0f ? (dx * dx) / innerRx2 + (dy * dy) / innerRy2 : 0.0f;
-
-        if (outer <= 1.0f && inner >= 1.0f) {
+        if (inOuter && outsideInner) {
           g.setPixel(x, y, color);
         }
       }
@@ -1242,17 +1246,21 @@ public final class ShapeGenerator {
     int innerX = Math.max(0, outerX - thickness);
     int innerY = Math.max(0, outerY - thickness);
 
+    int ox = Math.max(1, outerX);
+    int oy = Math.max(1, outerY);
+    int ix = Math.max(1, innerX);
+    int iy = Math.max(1, innerY);
+
     for (int y = 0; y < height; y++) {
+      int dy = Math.abs(y - cy);
       for (int x = 0; x < width; x++) {
+        int dx = Math.abs(x - cx);
 
-        float dx = Math.abs(x - cx);
-        float dy = Math.abs(y - cy);
+        // dx/ox + dy/oy <= 1  →  dx*oy + dy*ox <= ox*oy
+        boolean inOuter = dx * oy + dy * ox <= ox * oy;
+        boolean outsideInner = dx * iy + dy * ix >= ix * iy;
 
-        float outer = dx / (float) Math.max(1, outerX) + dy / (float) Math.max(1, outerY);
-
-        float inner = dx / (float) Math.max(1, innerX) + dy / (float) Math.max(1, innerY);
-
-        if (outer <= 1.0f && inner >= 1.0f) {
+        if (inOuter && outsideInner) {
           g.setPixel(x, y, color);
         }
       }
@@ -1448,26 +1456,7 @@ public final class ShapeGenerator {
   }
 
   public static PixelGraphics coin(int width, int height, int color) {
-    PixelGraphics g = new PixelGraphics(width, height);
-
-    float cx = width * 0.5f;
-    float cy = height * 0.5f;
-    float rx = width * 0.5f;
-    float ry = height * 0.5f;
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-
-        float dx = (x - cx) / rx;
-        float dy = (y - cy) / ry;
-
-        if (dx * dx + dy * dy <= 1.0f) {
-          g.setPixel(x, y, color);
-        }
-      }
-    }
-
-    return g;
+    return ellipse(width, height, color);
   }
 
   public static PixelGraphics bullet(int width, int height, int color) {
