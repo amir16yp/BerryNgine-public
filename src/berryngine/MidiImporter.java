@@ -213,7 +213,10 @@ public final class MidiImporter {
         resetSynth(tick);
         return;
       }
-      if (data.length >= 6 && (data[0] & 0xff) == 0x7f && (data[2] & 0xff) == 0x04 && (data[3] & 0xff) == 0x01) {
+      if (data.length >= 6
+          && (data[0] & 0xff) == 0x7f
+          && (data[2] & 0xff) == 0x04
+          && (data[3] & 0xff) == 0x01) {
         music.gain(0.8f * ((data[5] & 0x7f) / 127f));
       }
     }
@@ -511,7 +514,8 @@ public final class MidiImporter {
       for (Live live : release) finish(live, tick);
     }
 
-    private MusicSynth.Track ensureTrack(int sourceTrack, int channel, Channel state, MusicSynth.Drum voice) {
+    private MusicSynth.Track ensureTrack(
+        int sourceTrack, int channel, Channel state, MusicSynth.Drum voice) {
       Part part = new Part(channel, state.bank(), state.program, voice);
       MusicSynth.Track track = parts.get(part);
       if (track != null) return track;
@@ -576,8 +580,7 @@ public final class MidiImporter {
       float start = (float) timing.beat(live.startTick);
       float length = (float) (timing.beat(end) - timing.beat(live.startTick));
       if (!(length > 0.0001f)) length = 0.0001f;
-      MusicSynth.Note note =
-          live.track.place(start, live.note, length, live.velocity / 127f);
+      MusicSynth.Note note = live.track.place(start, live.note, length, live.velocity / 127f);
       note.expression(live.expression, live.expressionEnd)
           .modulation(live.modulation, live.modulationEnd)
           .tremolo(live.tremolo)
@@ -683,7 +686,8 @@ public final class MidiImporter {
         else if (fromInstrument != null) base = fromInstrument;
         else base = voice;
         if (music.find(base) != null) {
-          String detailed = base.equals(voice) ? base + " " + (track.channel() + 1) : base + " (" + voice + ")";
+          String detailed =
+              base.equals(voice) ? base + " " + (track.channel() + 1) : base + " (" + voice + ")";
           base = detailed;
           int suffix = 2;
           while (music.find(base) != null) {
@@ -696,7 +700,8 @@ public final class MidiImporter {
     }
 
     private static String voiceName(MusicSynth.Track track) {
-      if (track.percussion() && track.drum() != null) return track.drum().label() + kitLabel(track.program());
+      if (track.percussion() && track.drum() != null)
+        return track.drum().label() + kitLabel(track.program());
       if (track.program() >= 0) return MusicSynth.Instrument.gmName(track.program());
       return "Track";
     }
@@ -826,7 +831,8 @@ public final class MidiImporter {
         spanBpm[i] = spans.get(i)[2];
         endSecond[i] = spans.get(i)[3];
       }
-      return new Timing(false, 0, ticksPerSecond, null, null, startSecond, startBeat, spanBpm, endSecond);
+      return new Timing(
+          false, 0, ticksPerSecond, null, null, startSecond, startBeat, spanBpm, endSecond);
     }
 
     void apply(MusicSynth target) {
@@ -840,7 +846,8 @@ public final class MidiImporter {
         return;
       }
       target.tempo((float) spanBpm[0]);
-      for (int i = 1; i < spanBpm.length; i++) target.tempoAt((float) spanStartBeat[i], (float) spanBpm[i]);
+      for (int i = 1; i < spanBpm.length; i++)
+        target.tempoAt((float) spanStartBeat[i], (float) spanBpm[i]);
     }
 
     double beat(long tick) {

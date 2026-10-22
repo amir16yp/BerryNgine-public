@@ -569,7 +569,10 @@ public final class MusicSynth {
           instrument
               .gain(instrument.gain * 1.15f)
               .envelope(
-                  instrument.attack, instrument.decay * 0.75f, instrument.sustain, instrument.release);
+                  instrument.attack,
+                  instrument.decay * 0.75f,
+                  instrument.sustain,
+                  instrument.release);
           break;
         case 24:
           if (voice == Drum.KICK || voice == Drum.TOM)
@@ -577,7 +580,8 @@ public final class MusicSynth {
           else instrument.noise(Math.min(1f, instrument.noise + 0.15f));
           break;
         case 25:
-          instrument.waveform(voice == Drum.HAT || voice == Drum.CYMBAL ? Waveform.NOISE : Waveform.SQUARE);
+          instrument.waveform(
+              voice == Drum.HAT || voice == Drum.CYMBAL ? Waveform.NOISE : Waveform.SQUARE);
           instrument.envelope(0.001f, 0.06f, 0.1f, 0.04f);
           break;
         case 32:
@@ -591,7 +595,10 @@ public final class MusicSynth {
           instrument
               .gain(instrument.gain * 0.85f)
               .envelope(
-                  instrument.attack, instrument.decay, instrument.sustain, instrument.release * 1.25f);
+                  instrument.attack,
+                  instrument.decay,
+                  instrument.sustain,
+                  instrument.release * 1.25f);
           break;
         case 56:
           instrument.waveform(Waveform.NOISE).noise(1f).envelope(0.001f, 0.04f, 0.05f, 0.06f);
@@ -708,7 +715,11 @@ public final class MusicSynth {
               .gain(0.55f)
               .harmonics(0.3f);
         default:
-          return create().waveform(Waveform.NOISE).envelope(0.01f, 0.1f, 0.2f, 0.2f).noise(1f).gain(0.4f);
+          return create()
+              .waveform(Waveform.NOISE)
+              .envelope(0.01f, 0.1f, 0.2f, 0.2f)
+              .noise(1f)
+              .gain(0.4f);
       }
     }
 
@@ -719,7 +730,8 @@ public final class MusicSynth {
       instrument.harmonics(clamp01(instrument.harmonics + (variant - 3) * 0.03f));
       instrument.envelope(attack, decay, sustain, instrument.release * (0.88f + variant * 0.04f));
       instrument.gain(instrument.gain * (0.94f + variant * 0.015f));
-      if (instrument.lowpass > 0f) instrument.lowpass(instrument.lowpass * (0.82f + variant * 0.05f));
+      if (instrument.lowpass > 0f)
+        instrument.lowpass(instrument.lowpass * (0.82f + variant * 0.05f));
       instrument.duty(clamp01(instrument.duty + (variant - 3) * 0.015f));
       if ((variant & 1) == 1) {
         float rate = instrument.vibratoRate > 0f ? instrument.vibratoRate : 5.2f;
@@ -2046,7 +2058,8 @@ public final class MusicSynth {
               + note.tuning
               + curve(note.bendBeats, note.bendSemis, beatOffset, bendCursor);
       float frequency = hz(semis);
-      float depth = in.vibratoDepth + Mathf.lerpUnclamped(note.modulation, note.modulationEnd, amount);
+      float depth =
+          in.vibratoDepth + Mathf.lerpUnclamped(note.modulation, note.modulationEnd, amount);
       float rate = in.vibratoRate;
       if (rate <= 0f && depth > in.vibratoDepth) rate = 5.5f;
       float currentFrequency = frequency;
@@ -2137,7 +2150,8 @@ public final class MusicSynth {
     return x == 0 ? 1 : x;
   }
 
-  private static void applyReverb(float[] left, float[] right, float[] sendLeft, float[] sendRight) {
+  private static void applyReverb(
+      float[] left, float[] right, float[] sendLeft, float[] sendRight) {
     int[] tapsLeft = {1116, 1356, 1422, 1617};
     int[] tapsRight = {1188, 1277, 1491, 1557};
     float feedback = 0.46f;
