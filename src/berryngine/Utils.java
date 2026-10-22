@@ -9,6 +9,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 public final class Utils {
 
@@ -102,7 +106,7 @@ public final class Utils {
 
   public static Sound loadSoundFromGameInstall(String relativePath) {
     try {
-      return QOADecoder.decode(getFileFromGameInstall(relativePath));
+      return decodeSound(getFileFromGameInstall(relativePath), relativePath);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -110,7 +114,7 @@ public final class Utils {
 
   public static Sound loadSoundFromResources(String resourcePath) {
     try {
-      return QOADecoder.decode(getFileFromResources(resourcePath));
+      return decodeSound(getFileFromResources(resourcePath), resourcePath);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -159,7 +163,7 @@ public final class Utils {
 
   public static Sound loadSoundFromGameInstallZip(String zipPath, String entryPath) {
     try {
-      return QOADecoder.decode(getFileFromGameInstallZip(zipPath, entryPath));
+      return decodeSound(getFileFromGameInstallZip(zipPath, entryPath), entryPath);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -197,9 +201,72 @@ public final class Utils {
 
   public static Sound loadSoundFromResourcesZip(String resourcePath, String entryPath) {
     try {
-      return QOADecoder.decode(getFileFromResourcesZip(resourcePath, entryPath));
+      return decodeSound(getFileFromResourcesZip(resourcePath, entryPath), entryPath);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
+    }
+  }
+
+  private static Sound decodeSound(byte[] data, String path) throws IOException {
+    if (hasExtension(path, "wav")) {
+      return loadSoundFromWav(data);
+    }
+    return QOADecoder.decode(data);
+  }
+
+  private static Sound loadSoundFromWav(byte[] wavData) throws IOException {
+    AudioInputStream source = null;
+    AudioInputStream decoded = null;
+    try {
+      source = AudioSystem.getAudioInputStream(new ByteArrayInputStream(wavData));
+      AudioFormat src = source.getFormat();
+      AudioFormat target =
+          new AudioFormat(
+              AudioFormat.Encoding.PCM_SIGNED,
+              src.getSampleRate(),
+              16,
+              src.getChannels(),
+              src.getChannels() * 2,
+              src.getSampleRate(),
+              false);
+
+      boolean alreadyPcm16Le =
+          AudioFormat.Encoding.PCM_SIGNED.equals(src.getEncoding())
+              && src.getSampleSizeInBits() == 16
+              && !src.isBigEndian()
+              && src.getFrameSize() == src.getChannels() * 2;
+
+      AudioInputStream pcmStream = source;
+      if (!alreadyPcm16Le) {
+        decoded = AudioSystem.getAudioInputStream(target, source);
+        pcmStream = decoded;
+      }
+
+      AudioFormat format = pcmStream.getFormat();
+      byte[] bytes = toByteArray(pcmStream);
+      int channels = format.getChannels();
+      int frameSize = channels * 2;
+      int sampleFrames = bytes.length / frameSize;
+      short[] pcm = new short[sampleFrames * channels];
+      for (int i = 0; i < pcm.length; i++) {
+        int bi = i * 2;
+        pcm[i] = (short) ((bytes[bi] & 0xff) | (bytes[bi + 1] << 8));
+      }
+
+      Sound result = new Sound();
+      result.channels = channels;
+      result.samplerate = Math.round(format.getSampleRate());
+      result.samples = sampleFrames;
+      result.pcm = pcm;
+      return result;
+    } catch (UnsupportedAudioFileException e) {
+      throw new IOException("Unsupported WAV data", e);
+    } finally {
+      if (decoded != null) {
+        decoded.close();
+      } else if (source != null) {
+        source.close();
+      }
     }
   }
 
