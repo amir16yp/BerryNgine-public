@@ -408,10 +408,45 @@ public final class Color {
     return withLightnessHSL(color, Mathf.clamp01(getLightnessHSL(color) - amount));
   }
 
-  public static int grayscale(int color) {
-    int gray =
-        Math.round(0.299f * getRed(color) + 0.587f * getGreen(color) + 0.114f * getBlue(color));
+  /** ITU-R BT.601 luma as 0..255 (integer form of 0.299/0.587/0.114). */
+  public static int luminance(int color) {
+    return (getRed(color) * 77 + getGreen(color) * 150 + getBlue(color) * 29) >> 8;
+  }
 
+  public static int grayscale(int color) {
+    int gray = luminance(color);
     return fromRGBA(gray, gray, gray, getAlpha(color));
+  }
+
+  /** Nearest palette entry by RGB squared distance. Alpha of {@code color} is preserved by the caller. */
+  public static int nearest(int color, int[] palette) {
+    if (palette == null || palette.length == 0) {
+      return color;
+    }
+
+    int r = getRed(color);
+    int g = getGreen(color);
+    int b = getBlue(color);
+
+    int bestColor = palette[0];
+    int bestDistance = Integer.MAX_VALUE;
+
+    for (int i = 0; i < palette.length; i++) {
+      int p = palette[i];
+      int dr = r - getRed(p);
+      int dg = g - getGreen(p);
+      int db = b - getBlue(p);
+      int distance = dr * dr + dg * dg + db * db;
+
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestColor = p;
+        if (distance == 0) {
+          break;
+        }
+      }
+    }
+
+    return bestColor;
   }
 }

@@ -128,10 +128,18 @@ build.bat test
 build.bat benchmark 1000 4
 ```
 
-`build.bat` compiles every `src\*.java`, copies `default_assets` onto the classpath, and writes:
+### Linux / macOS
+
+```bash
+./build.sh
+./build.sh test
+./build.sh benchmark 1000 4
+```
+
+`build.bat` / `build.sh` compile every `src/**/*.java`, copy `default_assets` onto the classpath, and write:
 
 ```text
-build\berryngine-<branch-name>.jar
+build/berryngine-<branch-name>.jar
 ```
 
 - `test` — launches `TestScene` (FPS in the title bar)
@@ -334,11 +342,12 @@ Some operations need a finished buffer. `effect` flushes the queue, runs a callb
 
 ```java
 pg.drawImageWorld(level, 0, 0);
-pg.effect(buffer -> PostFX.scanlines(buffer, Color.BLACK, 0.35f));
+PostFX.scanlines(pg, 2, 0.35f);
+// or: pg.effect(buffer -> PostFX.scanlines(buffer, 2, 0.35f));
 pg.renderStringCached(BitmapFont.DEFAULT_8X9, "PAUSED", 8, 8, Color.WHITE);
 ```
 
-`PostFX` mutates pixels in place. Highlights:
+`PostFX` mutates pixels in place. Passed a `ThreadedPixelGraphics`, it flushes queued draws first. Highlights:
 
 - Color: grayscale, invert, tint, brightness, contrast, saturation, levels, posterize, palette quantize (+ Bayer dither), color replace
 - CRT / retro: scanlines, noise, chromatic aberration, screen curve, color fringing, horizontal distortion

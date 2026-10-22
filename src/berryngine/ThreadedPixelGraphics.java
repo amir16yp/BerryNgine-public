@@ -314,18 +314,10 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
                   horizontal
                       ? (x1 - x0 <= 1 ? 0f : (float) (col - x0) / (x1 - x0 - 1))
                       : (y1 - y0 <= 1 ? 0f : (float) (row - y0) / (y1 - y0 - 1));
-              tile.put(col, row, gradientColor(color1, color2, t));
+              tile.put(col, row, Color.lerp(color1, color2, t));
             }
           }
         });
-  }
-
-  private static int gradientColor(int first, int second, float t) {
-    int a = (int) ((first >>> 24) + ((second >>> 24) - (first >>> 24)) * t);
-    int r = (int) (((first >>> 16) & 255) + (((second >>> 16) & 255) - ((first >>> 16) & 255)) * t);
-    int g = (int) (((first >>> 8) & 255) + (((second >>> 8) & 255) - ((first >>> 8) & 255)) * t);
-    int b = (int) ((first & 255) + ((second & 255) - (first & 255)) * t);
-    return a << 24 | r << 16 | g << 8 | b;
   }
 
   public void drawVerticalGradient(int x, int y0, int y1, int topColor, int bottomColor) {
@@ -338,7 +330,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
             tile.put(
                 x,
                 row,
-                gradientColor(topColor, bottomColor, (float) (row - start) / (end - start)));
+                Color.lerp(topColor, bottomColor, (float) (row - start) / (end - start)));
         });
   }
 

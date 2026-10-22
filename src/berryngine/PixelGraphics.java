@@ -79,29 +79,12 @@ public class PixelGraphics {
 
     if (renderW <= 0 || renderH <= 0) return;
 
-    // Extract ARGB
-    int a1 = (color1 >>> 24) & 0xFF;
-    int r1 = (color1 >>> 16) & 0xFF;
-    int g1 = (color1 >>> 8) & 0xFF;
-    int b1 = (color1) & 0xFF;
-
-    int a2 = (color2 >>> 24) & 0xFF;
-    int r2 = (color2 >>> 16) & 0xFF;
-    int g2 = (color2 >>> 8) & 0xFF;
-    int b2 = (color2) & 0xFF;
-
     if (horizontal) {
       // LEFT → RIGHT gradient
       for (int i = 0; i < renderW; i++) {
 
         float t = (renderW <= 1) ? 0f : (float) i / (renderW - 1);
-
-        int a = (int) (a1 + (a2 - a1) * t);
-        int r = (int) (r1 + (r2 - r1) * t);
-        int g = (int) (g1 + (g2 - g1) * t);
-        int b = (int) (b1 + (b2 - b1) * t);
-
-        int color = (a << 24) | (r << 16) | (g << 8) | b;
+        int color = Color.lerp(color1, color2, t);
 
         int rowOffset = (yStart * this.width) + (xStart + i);
 
@@ -115,13 +98,7 @@ public class PixelGraphics {
       for (int j = 0; j < renderH; j++) {
 
         float t = (renderH <= 1) ? 0f : (float) j / (renderH - 1);
-
-        int a = (int) (a1 + (a2 - a1) * t);
-        int r = (int) (r1 + (r2 - r1) * t);
-        int g = (int) (g1 + (g2 - g1) * t);
-        int b = (int) (b1 + (b2 - b1) * t);
-
-        int color = (a << 24) | (r << 16) | (g << 8) | b;
+        int color = Color.lerp(color1, color2, t);
 
         int offset = (yStart + j) * this.width + xStart;
         int end = offset + renderW;
@@ -382,26 +359,10 @@ public class PixelGraphics {
     int totalSteps = endY - startY;
     if (totalSteps <= 0) return;
 
-    // Extract ARGB components
-    int a1 = (topColor >> 24) & 0xFF,
-        r1 = (topColor >> 16) & 0xFF,
-        g1 = (topColor >> 8) & 0xFF,
-        b1 = topColor & 0xFF;
-    int a2 = (bottomColor >> 24) & 0xFF,
-        r2 = (bottomColor >> 16) & 0xFF,
-        g2 = (bottomColor >> 8) & 0xFF,
-        b2 = bottomColor & 0xFF;
-
     int offset = startY * width + x;
     for (int i = 0; i <= totalSteps; i++) {
-      // Linear interpolation (Fixed-point math for speed)
       float ratio = (float) i / totalSteps;
-      int a = (int) (a1 + (a2 - a1) * ratio);
-      int r = (int) (r1 + (r2 - r1) * ratio);
-      int g = (int) (g1 + (g2 - g1) * ratio);
-      int b = (int) (b1 + (b2 - b1) * ratio);
-
-      pixels[offset] = (a << 24) | (r << 16) | (g << 8) | b;
+      pixels[offset] = Color.lerp(topColor, bottomColor, ratio);
       offset += width;
     }
   }
@@ -409,24 +370,24 @@ public class PixelGraphics {
   public void applyVignette(int color, float strength) {
     float centerX = width / 2.0f;
     float centerY = height / 2.0f;
-    float maxDist = (float) Math.sqrt(centerX * centerX + centerY * centerY) * strength;
+    float maxDist = Mathf.fastSqrt(centerX * centerX + centerY * centerY) * strength;
+    if (maxDist <= 0f) return;
 
-    int vr = (color >> 16) & 0xFF;
-    int vg = (color >> 8) & 0xFF;
-    int vb = color & 0xFF;
+    int vr = Color.getRed(color);
+    int vg = Color.getGreen(color);
+    int vb = Color.getBlue(color);
 
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         float dx = x - centerX;
         float dy = y - centerY;
-        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float dist = Mathf.fastSqrt(dx * dx + dy * dy);
 
-        // Calculate vignette intensity based on distance from center
         float t = Math.min(1.0f, dist / maxDist);
-        int alpha = (int) (t * 180); // Max vignette opacity
+        int alpha = (int) (t * 180);
 
         if (alpha > 0) {
-          blendPixel(x, y, (alpha << 24) | (vr << 16) | (vg << 8) | vb);
+          blendPixel(x, y, Color.fromRGBA(vr, vg, vb, alpha));
         }
       }
     }
