@@ -105,23 +105,30 @@ public final class Mathf {
    * @param x X coordinate
    * @return Approximate arctangent in radians
    */
-  public static float atan2(float y, float x) {
-    if (x == 0.0) return (y > 0f) ? (float) Math.PI / 2f : (y < 0f ? (float) -Math.PI / 2f : 0f);
+public static float atan2(float y, float x) {
+    if (x == 0.0f) {
+        if (y > 0.0f) return PI / 2.0f;
+        if (y < 0.0f) return -PI / 2.0f;
+        return 0.0f;
+    }
 
-    float absZ = Math.abs(y / x);
+    float z = y / x;
+    float absZ = Math.abs(z);
+
     float angle;
-
-    if (absZ < 1.0) {
-      angle = absZ / (1.0f + 0.28f * absZ * absZ);
+    if (absZ <= 1.0f) {
+        angle = absZ / (1.0f + 0.28f * absZ * absZ);
     } else {
-      angle = (float) Math.PI / 2f - absZ / (absZ * absZ + 0.28f);
+        angle = PI / 2.0f
+              - absZ / (absZ * absZ + 0.28f);
     }
 
-    if (x < 0) {
-      angle = (float) Math.PI - angle;
+    if (x < 0.0f) {
+        angle = PI - angle;
     }
-    return (y < 0f) ? -angle : angle;
-  }
+
+    return y < 0.0f ? -angle : angle;
+}
 
   /**
    * Converts degrees to radians
