@@ -135,6 +135,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
   private final Camera2D camera = new Camera2D();
   private Cursor cursor;
   private int clipX0, clipY0, clipX1, clipY1;
+
   /** Global alpha as 0..255 (255 = opaque). */
   private int alpha = 255;
 

@@ -13,6 +13,7 @@ public class PixelGraphics {
   public int width;
   public int height;
   private IVec2 size;
+
   /** Global alpha as 0..255 (255 = opaque). */
   private int globalAlpha = 255;
 
@@ -127,8 +128,7 @@ public class PixelGraphics {
   }
 
   /** Helper to interpolate between two ARGB sets; {@code t} is 0..255. */
-  private int interpolate(
-      int a1, int r1, int g1, int b1, int a2, int r2, int g2, int b2, int t) {
+  private int interpolate(int a1, int r1, int g1, int b1, int a2, int r2, int g2, int b2, int t) {
     t = Mathf.clamp(t, 0, 255);
     int a = a1 + ((a2 - a1) * t) / 255;
     int r = r1 + ((r2 - r1) * t) / 255;
@@ -371,8 +371,7 @@ public class PixelGraphics {
 
     int cx = width >> 1;
     int cy = height >> 1;
-    int maxDist =
-        Math.max(1, (int) (Mathf.fastSqrt(cx * (float) cx + cy * (float) cy) * strength));
+    int maxDist = Math.max(1, (int) (Mathf.fastSqrt(cx * (float) cx + cy * (float) cy) * strength));
     int maxDistSq = maxDist * maxDist;
 
     int vr = Color.getRed(color);

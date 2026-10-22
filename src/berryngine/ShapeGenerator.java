@@ -943,8 +943,7 @@ public final class ShapeGenerator {
         long dx2 = dx * dx;
 
         boolean inOuter = dx2 * outerRy2 + dy2 * outerRx2 <= outerRxy2;
-        boolean outsideInner =
-            !hasInner || dx2 * innerRy2 + dy2 * innerRx2 >= innerRxy2;
+        boolean outsideInner = !hasInner || dx2 * innerRy2 + dy2 * innerRx2 >= innerRxy2;
 
         if (inOuter && outsideInner) {
           g.setPixel(x, y, color);
