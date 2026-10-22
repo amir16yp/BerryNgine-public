@@ -199,7 +199,7 @@ public final class Color {
     // =========================================================
 
     public static int lerp(int c1, int c2, float t) {
-        t = clamp01(t);
+        t = Mathf.clamp01(t);
 
         int a1 = getAlpha(c1), r1 = getRed(c1), g1 = getGreen(c1), b1 = getBlue(c1);
         int a2 = getAlpha(c2), r2 = getRed(c2), g2 = getGreen(c2), b2 = getBlue(c2);
@@ -254,13 +254,4 @@ public final class Color {
                 throw new IllegalArgumentException("Invalid hex color: " + hex);
         }
     }
-
-    // =========================================================
-    // UTILS
-    // =========================================================
-
-    private static float clamp01(float v) {
-        return v < 0 ? 0 : Math.min(v, 1);
-    }
-
 }
