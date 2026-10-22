@@ -761,7 +761,7 @@ public final class ShapeGenerator {
       PixelGraphics g, int x, int y, int w, int h, int radius, int color) {
     if (w <= 0 || h <= 0) return;
 
-    radius = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+    radius = Mathf.clamp(radius, 0, Math.min(w, h) / 2);
 
     int r2 = radius * radius;
 
@@ -791,7 +791,7 @@ public final class ShapeGenerator {
       PixelGraphics g, int x, int y, int w, int h, int radius, int color) {
     if (w <= 0 || h <= 0) return;
 
-    radius = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+    radius = Mathf.clamp(radius, 0, Math.min(w, h) / 2);
     int r2 = radius * radius;
 
     int x2 = x + w - 1;
@@ -1195,8 +1195,8 @@ public final class ShapeGenerator {
       int width, int height, int teeth, float innerRadius, float outerRadius, int color) {
     if (teeth < 3) teeth = 3;
 
-    innerRadius = Math.max(0.0f, Math.min(1.0f, innerRadius));
-    outerRadius = Math.max(innerRadius, Math.min(1.0f, outerRadius));
+    innerRadius = Mathf.clamp01(innerRadius);
+    outerRadius = Mathf.clamp(outerRadius, innerRadius, 1.0f);
 
     PixelGraphics g = new PixelGraphics(width, height);
 
@@ -1499,7 +1499,7 @@ public final class ShapeGenerator {
   public static PixelGraphics progressBar(int width, int height, float progress, int color) {
     PixelGraphics g = new PixelGraphics(width, height);
 
-    progress = Math.max(0.0f, Math.min(1.0f, progress));
+    progress = Mathf.clamp01(progress);
 
     int filled = (int) (width * progress);
 

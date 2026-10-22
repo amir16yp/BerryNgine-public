@@ -105,19 +105,8 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
 
     void blend(int x, int y, int color) {
       if (x < 0 || x >= width || y < y0 || y >= y1) return;
-      int alpha = color >>> 24;
-      if (alpha == 0) return;
       int index = y * width + x;
-      if (alpha == 255) {
-        pixels[index] = color;
-        return;
-      }
-      int dst = pixels[index], inverse = 255 - alpha;
-      int a = alpha + ((dst >>> 24) * inverse) / 255;
-      int r = (((color >>> 16) & 255) * alpha + ((dst >>> 16) & 255) * inverse) / 255;
-      int g = (((color >>> 8) & 255) * alpha + ((dst >>> 8) & 255) * inverse) / 255;
-      int b = ((color & 255) * alpha + (dst & 255) * inverse) / 255;
-      pixels[index] = a << 24 | r << 16 | g << 8 | b;
+      pixels[index] = Color.composite(color, pixels[index]);
     }
   }
 
@@ -200,7 +189,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
   }
 
   public void setGlobalAlpha(float value) {
-    alpha = (int) (Math.max(0f, Math.min(1f, value)) * 255f + 0.5f);
+    alpha = (int) (Mathf.clamp01(value) * 255f + 0.5f);
   }
 
   public float getGlobalAlpha() {
@@ -497,7 +486,7 @@ public final class ThreadedPixelGraphics extends PixelGraphics implements AutoCl
                 int r = ((color >>> 16) & 255) * tr / 255;
                 int g = ((color >>> 8) & 255) * tg / 255;
                 int b = (color & 255) * tb / 255;
-                color = a << 24 | r << 16 | g << 8 | b;
+                color = Color.fromRGBA(r, g, b, a);
               }
               tile.blend(col, row, color);
             }

@@ -379,7 +379,7 @@ public class SoundSystem implements AutoCloseable {
       if (inputChannels == 1) {
         int s0 = file.pcm[p0];
         int s1 = file.pcm[p1];
-        int s = (int) (s0 + (s1 - s0) * frac);
+        int s = (int) Mathf.lerpUnclamped(s0, s1, frac);
         out[i * 2] = (short) s;
         out[i * 2 + 1] = (short) s;
       } else {
@@ -389,8 +389,8 @@ public class SoundSystem implements AutoCloseable {
         int s1L = file.pcm[base1];
         int s0R = file.pcm[base0 + 1];
         int s1R = file.pcm[base1 + 1];
-        int l = (int) (s0L + (s1L - s0L) * frac);
-        int r = (int) (s0R + (s1R - s0R) * frac);
+        int l = (int) Mathf.lerpUnclamped(s0L, s1L, frac);
+        int r = (int) Mathf.lerpUnclamped(s0R, s1R, frac);
         out[i * 2] = (short) l;
         out[i * 2 + 1] = (short) r;
       }

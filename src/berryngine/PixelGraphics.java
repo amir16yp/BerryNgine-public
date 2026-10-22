@@ -127,17 +127,6 @@ public class PixelGraphics {
     }
   }
 
-  /** Helper to interpolate between two ARGB sets; {@code t} is 0..255. */
-  private int interpolate(int a1, int r1, int g1, int b1, int a2, int r2, int g2, int b2, int t) {
-    t = Mathf.clamp(t, 0, 255);
-    int a = a1 + ((a2 - a1) * t) / 255;
-    int r = r1 + ((r2 - r1) * t) / 255;
-    int g = g1 + ((g2 - g1) * t) / 255;
-    int b = b1 + ((b2 - b1) * t) / 255;
-
-    return (a << 24) | (r << 16) | (g << 8) | b;
-  }
-
   // --- 1. Pixel Operations ---
 
   public void setPixel(int x, int y, int color) {
@@ -213,70 +202,17 @@ public class PixelGraphics {
     if (x < clipX1 || x >= clipX2 || y < clipY1 || y >= clipY2) return;
 
     int idx = y * width + x;
-    int dstColor = pixels[idx];
-
-    int srcA = srcColor >>> 24;
-    if (srcA == 0) return;
-
-    // Fast path: fully opaque
-    if (srcA == 255) {
-      pixels[idx] = srcColor;
-      return;
-    }
-
-    int dstA = dstColor >>> 24;
-
-    int srcR = (srcColor >> 16) & 0xFF;
-    int srcG = (srcColor >> 8) & 0xFF;
-    int srcB = srcColor & 0xFF;
-
-    int dstR = (dstColor >> 16) & 0xFF;
-    int dstG = (dstColor >> 8) & 0xFF;
-    int dstB = dstColor & 0xFF;
-
-    int invA = 255 - srcA;
-
-    int outA = srcA + (dstA * invA) / 255;
-    int outR = (srcR * srcA + dstR * invA) / 255;
-    int outG = (srcG * srcA + dstG * invA) / 255;
-    int outB = (srcB * srcA + dstB * invA) / 255;
-
-    pixels[idx] = (outA << 24) | (outR << 16) | (outG << 8) | outB;
+    pixels[idx] = Color.composite(srcColor, pixels[idx]);
   }
 
   public void blendPixelGlobal(int x, int y, int srcColor) {
     if (x < clipX1 || x >= clipX2 || y < clipY1 || y >= clipY2) return;
 
     int idx = y * width + x;
-    int dstColor = pixels[idx];
-
     int srcA = ((srcColor >>> 24) * globalAlpha) / 255;
     if (srcA <= 0) return;
-
-    // Fast path: fully opaque after global alpha
-    if (srcA >= 255) {
-      pixels[idx] = (srcColor & 0x00FFFFFF) | (255 << 24);
-      return;
-    }
-
-    int dstA = dstColor >>> 24;
-
-    int srcR = (srcColor >> 16) & 0xFF;
-    int srcG = (srcColor >> 8) & 0xFF;
-    int srcB = srcColor & 0xFF;
-
-    int dstR = (dstColor >> 16) & 0xFF;
-    int dstG = (dstColor >> 8) & 0xFF;
-    int dstB = dstColor & 0xFF;
-
-    int invA = 255 - srcA;
-
-    int outA = srcA + (dstA * invA) / 255;
-    int outR = (srcR * srcA + dstR * invA) / 255;
-    int outG = (srcG * srcA + dstG * invA) / 255;
-    int outB = (srcB * srcA + dstB * invA) / 255;
-
-    pixels[idx] = (outA << 24) | (outR << 16) | (outG << 8) | outB;
+    int src = (srcColor & 0x00FFFFFF) | (srcA << 24);
+    pixels[idx] = Color.composite(src, pixels[idx]);
   }
 
   /** Fills a rectangle using a Java2D Paint object (Gradients). */
@@ -479,7 +415,7 @@ public class PixelGraphics {
         int g = ((c >> 8) & 0xFF) * tG / 255;
         int b = (c & 0xFF) * tB / 255;
         int ra = a * tA / 255;
-        blendPixel(dstX0 + (col - xStart), dstY, (ra << 24) | (r << 16) | (g << 8) | b);
+        blendPixel(dstX0 + (col - xStart), dstY, Color.fromRGBA(r, g, b, ra));
       }
     }
   }
@@ -562,7 +498,7 @@ public class PixelGraphics {
   }
 
   public void setGlobalAlpha(float alpha) {
-    this.globalAlpha = (int) (Math.max(0f, Math.min(1f, alpha)) * 255f + 0.5f);
+    this.globalAlpha = (int) (Mathf.clamp01(alpha) * 255f + 0.5f);
   }
 
   public void setClip(int x, int y, int w, int h) {

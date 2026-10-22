@@ -214,8 +214,8 @@ public final class Vec2 {
 
   /** Linear interpolation towards a target velocity (useful for smooth acceleration/steering). */
   public Vec2 lerp(Vec2 target, float t) {
-    this.x += (target.x - this.x) * t;
-    this.y += (target.y - this.y) * t;
+    this.x = Mathf.lerpUnclamped(this.x, target.x, t);
+    this.y = Mathf.lerpUnclamped(this.y, target.y, t);
     return this;
   }
 

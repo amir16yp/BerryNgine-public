@@ -450,9 +450,22 @@ Presets: `laser`, `coin`, `explosion`, `jump`, `hit`, `powerup`, `blip`, `select
 
 ### `MusicSynth` — multi-track music
 
-Compose tracks with instruments (`lead`, `bass`, `pad`, `bell`, or custom waveforms), tempo, swing, delay, pan, transpose, notes, chords, and arpeggios. `build()` produces a peak-normalized stereo `Sound`.
+Compose tracks with instruments (`lead`, `bass`, `pad`, `bell`, `piano`, `organ`, `guitar`, `strings`, `brass`, `flute`, `choir`, `mallet`, `gm(program)`, or a drum voice), tempo changes, swing, delay, reverb, chorus, pan, transpose, notes, chords, and arpeggios. `build()` produces a peak-normalized stereo `Sound`.
 
-`MidiImporter` can load PPQ MIDI into a `MusicSynth` (channel 9 / drums skipped; GM programs mapped to instrument presets).
+`MidiImporter` loads PPQ and SMPTE MIDI into a normal `MusicSynth`: tempo map, drums, General MIDI programs, and the controllers that shape the performance (volume, pan, expression, sustain, portamento, pitch bend, modulation). Patches are procedural, not a sample player. Edit a loaded or hand-built song before `build()`:
+
+```java
+MusicSynth song = Utils.loadMidiFromResources("/game/theme.mid");
+song.tempo(132)
+    .instrument("Melody", MusicSynth.Instrument.lead())
+    .replaceProgram(33, MusicSynth.Instrument.bass())
+    .replaceDrum(MusicSynth.Drum.HAT, MusicSynth.Instrument.drumHat())
+    .track(0).volume(0.8f).pan(-0.2f).end()
+    .transpose(-1);
+Sound music = song.build();
+```
+
+`mapInstruments` rewrites every track in one pass. `Track.resetPerformance()` drops imported bend and expression when you want the notes played plainly.
 
 ---
 

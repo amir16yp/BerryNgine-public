@@ -467,7 +467,7 @@ public final class SoundSynth {
          * Linear interpolation is required when
          * either frequency is zero.
          */
-        freq = freqStart + (freqEnd - freqStart) * t;
+        freq = Mathf.lerpUnclamped(freqStart, freqEnd, t);
       }
 
       // ----------------------------------------------------
@@ -619,7 +619,7 @@ public final class SoundSynth {
          */
         float p = (i - attackEnd) / Math.max(1.0f, decayEnd - attackEnd);
 
-        env = 1.0f + (sustainLevel - 1.0f) * p;
+        env = Mathf.lerpUnclamped(1.0f, sustainLevel, p);
 
       } else if (i < sustainEnd) {
 
@@ -709,7 +709,7 @@ public final class SoundSynth {
      * Prevent absurd cutoff values from producing
      * strange coefficients.
      */
-    cutoffHz = Math.max(0.0001f, Math.min(cutoffHz, SAMPLE_RATE * 0.49f));
+    cutoffHz = Mathf.clamp(cutoffHz, 0.0001f, SAMPLE_RATE * 0.49f);
 
     float rc = 1.0f / (2.0f * (float) Math.PI * cutoffHz);
 

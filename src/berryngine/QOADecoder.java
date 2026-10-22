@@ -34,12 +34,6 @@ public class QOADecoder {
     int[] weights = new int[QOA_LMS_LEN];
   }
 
-  private static int clampS16(int v) {
-    if (v < -32768) return -32768;
-    if (v > 32767) return 32767;
-    return v;
-  }
-
   private static int lmsPredict(LMS lms) {
     int prediction = 0;
 
@@ -135,7 +129,7 @@ public class QOADecoder {
 
             int dequantized = DEQUANT_TAB[scalefactor][quantized];
 
-            int reconstructed = clampS16(predicted + dequantized);
+            int reconstructed = Mathf.clamp(predicted + dequantized, -32768, 32767);
 
             pcm[(sampleIndex + s) * channels + c] = (short) reconstructed;
 

@@ -244,6 +244,19 @@ public final class Color {
     return fromRGBA(r, g, b, getAlpha(color));
   }
 
+  /** Src-over composite. Alpha 0 returns {@code dst}; alpha 255 returns {@code src}. */
+  public static int composite(int src, int dst) {
+    int srcA = src >>> 24;
+    if (srcA == 0) return dst;
+    if (srcA == 255) return src;
+    int inv = 255 - srcA;
+    int a = srcA + ((dst >>> 24) * inv) / 255;
+    int r = (((src >>> 16) & 255) * srcA + ((dst >>> 16) & 255) * inv) / 255;
+    int g = (((src >>> 8) & 255) * srcA + ((dst >>> 8) & 255) * inv) / 255;
+    int b = ((src & 255) * srcA + (dst & 255) * inv) / 255;
+    return (a << 24) | (r << 16) | (g << 8) | b;
+  }
+
   public static int blend(int src, int dst) {
     int a = getAlpha(src);
     if (a == 0) {
