@@ -67,6 +67,19 @@ public final class Input {
     }
   }
 
+  /**
+   * Drops every latched key, mouse button, and pending character. A focus loss does not deliver
+   * the releases that happened while the window was away, and a stuck Alt or Ctrl would otherwise
+   * hide typed text.
+   */
+  static void releaseAll() {
+    for (int i = 0; i < NUM_KEYS; i++) rawKeys[i] = false;
+    for (int i = 1; i < mouseButtons.length; i++) mouseButtons[i] = false;
+    synchronized (rawTyped) {
+      rawTyped.setLength(0);
+    }
+  }
+
   // =========================
   // FRAME UPDATE
   // =========================

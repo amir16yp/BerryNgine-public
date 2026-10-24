@@ -203,6 +203,14 @@ public class GameWindow extends Canvas {
           }
         });
 
+    addFocusListener(
+        new FocusAdapter() {
+          @Override
+          public void focusLost(FocusEvent e) {
+            Input.releaseAll();
+          }
+        });
+
     addMouseListener(
         new MouseAdapter() {
           @Override

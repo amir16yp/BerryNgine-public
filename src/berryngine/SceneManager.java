@@ -16,11 +16,18 @@ public class SceneManager {
         new WindowAdapter() {
           @Override
           public void windowGainedFocus(WindowEvent e) {
+            EventQueue.invokeLater(
+                new Runnable() {
+                  public void run() {
+                    window.requestFocusInWindow();
+                  }
+                });
             notifyFocusChanged(true);
           }
 
           @Override
           public void windowLostFocus(WindowEvent e) {
+            Input.releaseAll();
             notifyFocusChanged(false);
           }
         });
