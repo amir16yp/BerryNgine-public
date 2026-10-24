@@ -32,7 +32,9 @@ if [[ -e "${JAR}" ]]; then
   fi
 fi
 
-jar --create --file "${JAR}" --main-class berryngine.TestScene -C "${CLASSES}" .
+# Use traditional jar flags for compatibility with older JDKs.
+jar cfe "${JAR}" berryngine.TestScene -C "${CLASSES}" .
+
 echo "Built ${JAR}"
 
 case "${1:-}" in

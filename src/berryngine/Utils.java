@@ -9,6 +9,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -387,6 +388,45 @@ public final class Utils {
     String timestamp =
         new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
     saveScreenshot(g, "screenshot_" + timestamp + ".png");
+  }
+
+  public static void saveSound(Sound sound, String filePath) {
+    if (sound == null || sound.pcm == null) {
+      throw new IllegalArgumentException("sound/pcm cannot be null");
+    }
+    if (sound.channels <= 0 || sound.samplerate <= 0 || sound.samples <= 0) {
+      throw new IllegalArgumentException("sound channels/samplerate/samples must be positive");
+    }
+    if (sound.pcm.length < sound.samples * sound.channels) {
+      throw new IllegalArgumentException("sound.pcm shorter than samples * channels");
+    }
+
+    try {
+      File out = new File(filePath);
+      if (out.getParentFile() != null) out.getParentFile().mkdirs();
+
+      AudioFormat format =
+          new AudioFormat(sound.samplerate, 16, sound.channels, true, false);
+      byte[] bytes = new byte[sound.samples * sound.channels * 2];
+      for (int i = 0; i < sound.samples * sound.channels; i++) {
+        short sample = sound.pcm[i];
+        bytes[i * 2] = (byte) (sample & 0xff);
+        bytes[i * 2 + 1] = (byte) ((sample >> 8) & 0xff);
+      }
+
+      try (AudioInputStream stream =
+          new AudioInputStream(new ByteArrayInputStream(bytes), format, sound.samples)) {
+        AudioSystem.write(stream, AudioFileFormat.Type.WAVE, out);
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static void saveSound(Sound sound) {
+    String timestamp =
+        new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
+    saveSound(sound, "sound_" + timestamp + ".wav");
   }
 
   private static byte[] toByteArray(InputStream input) throws IOException {
