@@ -405,8 +405,7 @@ public final class Utils {
       File out = new File(filePath);
       if (out.getParentFile() != null) out.getParentFile().mkdirs();
 
-      AudioFormat format =
-          new AudioFormat(sound.samplerate, 16, sound.channels, true, false);
+      AudioFormat format = new AudioFormat(sound.samplerate, 16, sound.channels, true, false);
       byte[] bytes = new byte[sound.samples * sound.channels * 2];
       for (int i = 0; i < sound.samples * sound.channels; i++) {
         short sample = sound.pcm[i];
