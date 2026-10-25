@@ -8,13 +8,16 @@ public final class Mathf {
 
   // Size of the lookup tables (higher values give more precision)
   private static final int TABLE_SIZE = 4096;
+  private static final int MASK = TABLE_SIZE - 1;
+  private static final float TABLE_FACTOR = TABLE_SIZE / TWO_PI;
+
   public static float PI = (float) Math.PI;
   public static float TWO_PI = PI * 2.0f;
   private static final float PI_180 = 0.017453292519943295f;
   private static final float PI_180_INV = 57.29577951308232f;
   // Maximum angle in radians (2π)
   private static final float MAX_ANGLE = PI * 2.0f;
-
+  
   // Lookup tables for trigonometric functions
   private static final float[] SIN_TABLE = new float[TABLE_SIZE];
   private static final float[] COS_TABLE = new float[TABLE_SIZE];
@@ -51,34 +54,17 @@ public final class Mathf {
   }
 
   public static float sin(float angle) {
-    if (angle < 0f || angle >= TWO_PI) {
-      angle %= TWO_PI;
-      if (angle < 0f) angle += TWO_PI;
-    }
-
-    int index = (int) (angle * TABLE_FACTOR);
-    return SIN_TABLE[index & (TABLE_SIZE - 1)];
+      return SIN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
   }
-
+  
   public static float cos(float angle) {
-    if (angle < 0f || angle >= TWO_PI) {
-      angle %= TWO_PI;
-      if (angle < 0f) angle += TWO_PI;
-    }
-
-    int index = (int) (angle * TABLE_FACTOR);
-    return COS_TABLE[index & (TABLE_SIZE - 1)];
+      return COS_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
   }
-
+  
   public static float tan(float angle) {
-    if (angle < 0f || angle >= TWO_PI) {
-      angle %= TWO_PI;
-      if (angle < 0f) angle += TWO_PI;
-    }
-
-    int index = (int) (angle * TABLE_FACTOR);
-    return TAN_TABLE[index & (TABLE_SIZE - 1)];
+      return TAN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
   }
+
 
   /**
    * Fast inverse tangent approximation
