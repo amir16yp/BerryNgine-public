@@ -65,6 +65,25 @@ public final class Mathf {
     return TAN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
   }
 
+// --- SAFE / NORMALIZED VARIANTS (For arbitrary or growing angles) ---
+  public static float safeSin(float angle) {
+    float wrapped = angle % MAX_ANGLE;
+    if (wrapped < 0) wrapped += MAX_ANGLE;
+    return SIN_TABLE[(int) (wrapped * TABLE_FACTOR) & MASK];
+  }
+
+  public static float safeCos(float angle) {
+    float wrapped = angle % MAX_ANGLE;
+    if (wrapped < 0) wrapped += MAX_ANGLE;
+    return COS_TABLE[(int) (wrapped * TABLE_FACTOR) & MASK];
+  }
+
+  public static float safeTan(float angle) {
+    float wrapped = angle % MAX_ANGLE;
+    if (wrapped < 0) wrapped += MAX_ANGLE;
+    return TAN_TABLE[(int) (wrapped * TABLE_FACTOR) & MASK];
+  }
+  
   /**
    * Fast inverse tangent approximation
    *
