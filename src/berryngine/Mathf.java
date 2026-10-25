@@ -50,52 +50,34 @@ public final class Mathf {
     return angle;
   }
 
-  /**
-   * Fast sine calculation using table lookup
-   *
-   * @param angle Angle in radians
-   * @return Approximate sine value
-   */
   public static float sin(float angle) {
-    // Normalize angle to [0, 2π)
-    angle = angle % MAX_ANGLE;
-    if (angle < 0) angle += MAX_ANGLE;
-
-    // Convert to table index
-    int index = (int) (angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
-    return SIN_TABLE[index];
+      if (angle < 0f || angle >= TWO_PI) {
+          angle %= TWO_PI;
+          if (angle < 0f) angle += TWO_PI;
+      }
+  
+      int index = (int) (angle * TABLE_FACTOR);
+      return SIN_TABLE[index & (TABLE_SIZE - 1)];
   }
-
-  /**
-   * Fast cosine calculation using table lookup
-   *
-   * @param angle Angle in radians
-   * @return Approximate cosine value
-   */
+  
   public static float cos(float angle) {
-    // Normalize angle to [0, 2π)
-    angle = angle % MAX_ANGLE;
-    if (angle < 0) angle += MAX_ANGLE;
-
-    // Convert to table index
-    int index = (int) (angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
-    return COS_TABLE[index];
+      if (angle < 0f || angle >= TWO_PI) {
+          angle %= TWO_PI;
+          if (angle < 0f) angle += TWO_PI;
+      }
+  
+      int index = (int) (angle * TABLE_FACTOR);
+      return COS_TABLE[index & (TABLE_SIZE - 1)];
   }
-
-  /**
-   * Fast tangent calculation using table lookup
-   *
-   * @param angle Angle in radians
-   * @return Approximate tangent value
-   */
+  
   public static float tan(float angle) {
-    // Normalize angle to [0, 2π)
-    angle = angle % MAX_ANGLE;
-    if (angle < 0) angle += MAX_ANGLE;
-
-    // Convert to table index
-    int index = (int) (angle * TABLE_FACTOR) & (TABLE_SIZE - 1);
-    return TAN_TABLE[index];
+      if (angle < 0f || angle >= TWO_PI) {
+          angle %= TWO_PI;
+          if (angle < 0f) angle += TWO_PI;
+      }
+  
+      int index = (int) (angle * TABLE_FACTOR);
+      return TAN_TABLE[index & (TABLE_SIZE - 1)];
   }
 
   /**
