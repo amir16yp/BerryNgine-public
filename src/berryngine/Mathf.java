@@ -17,7 +17,7 @@ public final class Mathf {
   private static final float PI_180_INV = 57.29577951308232f;
   // Maximum angle in radians (2π)
   private static final float MAX_ANGLE = PI * 2.0f;
-  
+
   // Lookup tables for trigonometric functions
   private static final float[] SIN_TABLE = new float[TABLE_SIZE];
   private static final float[] COS_TABLE = new float[TABLE_SIZE];
@@ -54,17 +54,16 @@ public final class Mathf {
   }
 
   public static float sin(float angle) {
-      return SIN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
-  }
-  
-  public static float cos(float angle) {
-      return COS_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
-  }
-  
-  public static float tan(float angle) {
-      return TAN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
+    return SIN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
   }
 
+  public static float cos(float angle) {
+    return COS_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
+  }
+
+  public static float tan(float angle) {
+    return TAN_TABLE[(int) (angle * TABLE_FACTOR) & MASK];
+  }
 
   /**
    * Fast inverse tangent approximation
