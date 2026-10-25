@@ -51,33 +51,33 @@ public final class Mathf {
   }
 
   public static float sin(float angle) {
-      if (angle < 0f || angle >= TWO_PI) {
-          angle %= TWO_PI;
-          if (angle < 0f) angle += TWO_PI;
-      }
-  
-      int index = (int) (angle * TABLE_FACTOR);
-      return SIN_TABLE[index & (TABLE_SIZE - 1)];
+    if (angle < 0f || angle >= TWO_PI) {
+      angle %= TWO_PI;
+      if (angle < 0f) angle += TWO_PI;
+    }
+
+    int index = (int) (angle * TABLE_FACTOR);
+    return SIN_TABLE[index & (TABLE_SIZE - 1)];
   }
-  
+
   public static float cos(float angle) {
-      if (angle < 0f || angle >= TWO_PI) {
-          angle %= TWO_PI;
-          if (angle < 0f) angle += TWO_PI;
-      }
-  
-      int index = (int) (angle * TABLE_FACTOR);
-      return COS_TABLE[index & (TABLE_SIZE - 1)];
+    if (angle < 0f || angle >= TWO_PI) {
+      angle %= TWO_PI;
+      if (angle < 0f) angle += TWO_PI;
+    }
+
+    int index = (int) (angle * TABLE_FACTOR);
+    return COS_TABLE[index & (TABLE_SIZE - 1)];
   }
-  
+
   public static float tan(float angle) {
-      if (angle < 0f || angle >= TWO_PI) {
-          angle %= TWO_PI;
-          if (angle < 0f) angle += TWO_PI;
-      }
-  
-      int index = (int) (angle * TABLE_FACTOR);
-      return TAN_TABLE[index & (TABLE_SIZE - 1)];
+    if (angle < 0f || angle >= TWO_PI) {
+      angle %= TWO_PI;
+      if (angle < 0f) angle += TWO_PI;
+    }
+
+    int index = (int) (angle * TABLE_FACTOR);
+    return TAN_TABLE[index & (TABLE_SIZE - 1)];
   }
 
   /**
